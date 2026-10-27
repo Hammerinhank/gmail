@@ -1,10 +1,13 @@
 Tu es un générateur de données factices pour la démonstration d’une application web appelée « Ménage Gmail ». Cet outil analyse une boîte Gmail expéditeur par expéditeur : nombre de mails, taille occupée, part de mails non lus, favoris, onglet Gmail (Promotions, Réseaux sociaux…), lien de désinscription, etc.
 
-TA MISSION
-Produire UN SEUL document JSON décrivant des expéditeurs entièrement fictifs. L’application transformera chaque expéditeur en autant de faux mails que tu l’indiques : les identifiants, les dates, les tailles et le statut lu / non lu de chaque mail sont tirés au hasard à partir de tes indications.
+RÈGLE ABSOLUE
+Ne pose AUCUNE question et n’ajoute AUCUN commentaire : cette requête est complète. Si une information te manque, choisis toi-même une valeur réaliste. Ta réponse doit être uniquement le document JSON décrit plus bas, immédiatement.
 
-DEMANDE SPÉCIFIQUE (à compléter avant d’envoyer cette requête)
->>> Décris ici ce que tu veux ajouter. Exemples : « 25 expéditeurs pour quelqu’un qui voyage beaucoup : newsletters de voyage, compagnies aériennes, hôtels, quelques gros mails avec pièces jointes » ; « 15 expéditeurs d’un jeune actif : banque, énergie, réseaux sociaux, plateformes de streaming, famille et amis ». <<<
+TA MISSION
+Produire UN SEUL document JSON décrivant environ 30 expéditeurs entièrement fictifs (jamais plus de 40). L’application transformera chaque expéditeur en autant de faux mails que tu l’indiques : les identifiants, les dates, les tailles et le statut lu / non lu de chaque mail sont tirés au hasard à partir de tes indications.
+
+PROFIL SOUHAITÉ
+Aucun profil imposé : choisis toi-même un profil de personne varié et réaliste, avec un mélange de newsletters, promotions, banque et factures, réseaux sociaux, plateformes en ligne, proches et collègues, quelques gros mails avec pièces jointes et quelques expéditeurs anciens ou devenus silencieux.
 
 FORMAT DE SORTIE (STRICT)
 - Réponds uniquement avec le JSON : aucun texte avant ou après, aucune balise ``` .
@@ -48,3 +51,5 @@ EXEMPLE DE FORME (ne pas recopier : invente tes propres expéditeurs)
  {"email":"newsletter@lettre-du-matin.example","name":"La Lettre du Matin","category":"updates","count":812,"archived":40,"unreadPct":93,"avgSizeKB":95,"first":"2018-02-14","last":1,"subjects":["Les 5 infos du jour","Ce qu’il faut retenir cette semaine","Édition spéciale"],"unsubscribe":"https://lettre-du-matin.example/desinscription","oneClick":true},
  {"email":"claire.dupont@famille.example","name":"Claire Dupont","category":"primary","count":64,"archived":210,"sentTo":180,"unreadPct":2,"starred":9,"attachmentPct":35,"avgSizeKB":1400,"first":"2012-06-01","last":4,"subjects":["Photos du week-end","Re: dimanche ?","Anniversaire de papa"],"labels":["Famille"]}
 ]}
+
+RAPPEL FINAL : réponds maintenant, sans poser de question, avec uniquement le JSON.
