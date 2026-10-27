@@ -186,14 +186,6 @@ table.dist td.r{text-align:right}
     <button class="btn" id="go" type="button">Se connecter à Gmail</button>
   </div>
 
-  <div class="card" id="histCard">
-    <h2>🛠 Provisoire : sauvegarder l’historique de index.html</h2>
-    <p class="mut" style="margin:0 0 8px">Reproduit l’historique du dépôt public ci-dessous <b>commit par commit</b> dans le dépôt du Journal GitHub (par ex. <code>gmail-privatedata</code>) : une version de <code>index-history.html</code> par version de <code>index.html</code>, avec le même message, le même auteur et la même date. Les commits sont ajoutés à la suite de la branche principale ; les autres fichiers du dépôt ne sont pas modifiés. Le Journal GitHub doit déjà être configuré (dépôt + jeton avec écriture, dépôt non vide). Compter environ 3 secondes par version (limite GitHub) ; un contrôle empêche de le faire deux fois (pas de doublons).</p>
-    <input type="text" id="histRepo" placeholder="pseudo/nom-du-depot-public" autocomplete="off" spellcheck="false" style="margin-bottom:8px">
-    <button class="btn" id="histBtn" type="button">Reproduire l’historique</button>
-    <p class="mut" id="histStatus" style="margin:6px 0 0"></p>
-  </div>
-
   <div id="tools" hidden>
     <div class="card">
       <h2>Ma boîte en chiffres</h2>
@@ -343,7 +335,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.75"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.76"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -421,6 +413,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.73", "Reproduction de l’historique : plus de branche à part. Les commits (un par version de index.html, même message, même auteur, même date) sont ajoutés à la suite de la branche principale du dépôt du journal, qui garde tous ses autres fichiers (arbre de chaque commit construit sur le précédent). Un contrôle empêche les doublons si l’historique a déjà été reproduit ; la branche principale n’est mise à jour qu’à la fin, en avance rapide."],
   ["1.74", "Reproduction de l’historique : réessai automatique (jusqu’à 6 fois, attentes croissantes) quand GitHub répond par une erreur serveur 5xx (« erreur 500 », 502, 503…) ou que la connexion échoue momentanément, au lieu d’abandonner dès la première erreur."],
   ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."]
+  ["1.76", "Garde-fou multi-comptes : sélecteur de compte Google forcé à chaque connexion, champ « Compte à traiter » (connexion refusée si Google connecte une autre adresse), bandeau permanent coloré avec l’adresse connectée, adresse rappelée dans la confirmation de mise à la corbeille. Suppression du bouton provisoire « Reproduire l’historique » et de son code, devenus inutiles."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -492,8 +485,8 @@ const EXPK = "gmailMenage.expected";
 const colorOf = e => { let h = 0; for (const c of e) h = (h * 31 + c.charCodeAt(0)) % 360; return "hsl(" + h + ",60%,36%)"; };
 function setAcctBar(email) {
   const b = $("#acctBar"); if (!b) return;
-  if (!email) { b.hidden = true; b.textContent = ""; document.title = "Ménage Gmail"; return; }
-  b.style.setProperty("--acc", colorOf(email)); b.textContent = "Compte connecté : " + email; b.hidden = false; document.title = email + " — Ménage Gmail";
+  if (!email) { b.hidden = true; b.textContent = ""; document.title = "Ménage Gmail v" + VERSION; return; }
+  b.style.setProperty("--acc", colorOf(email)); b.textContent = "Compte connecté : " + email; b.hidden = false; document.title = email + " — Ménage Gmail v" + VERSION;
 }
 try { $("#expAcct").value = localStorage.getItem(EXPK) || ""; } catch (e) {}
 $("#go").onclick = async () => {
@@ -663,101 +656,6 @@ $("#ghSave").onclick = async () => {
   if (!token) return ghStatus("Collez votre jeton GitHub.", 1);
   try { localStorage.setItem(GH, JSON.stringify({ repo, token, path: "menage-gmail-log.json" })); } catch (e) { return ghStatus("localStorage indisponible.", 1); }
   $("#ghTok").value = ""; ghInit(); await ghSync(true, true);
-};
-// ===== PROVISOIRE : reproduit l’historique de index.html (dépôt public) dans le dépôt du journal : un commit par version, fichier index-history.html, branche « index-history » =====
-const HISTK = "gmailMenage.histRepo", HISTSRC = "index.html", HISTFILE = "index-history.html", HISTBRANCH = "index-history";
-(() => {
-  let v = ""; try { v = localStorage.getItem(HISTK) || ""; } catch (e) {}
-  if (!v && /\.github\.io$/.test(location.hostname)) { const o = location.hostname.split(".")[0], r = location.pathname.split("/")[1]; v = o + "/" + (r && !/\.html?$/i.test(r) ? r : o + ".github.io"); } // déduit de l’adresse GitHub Pages
-  $("#histRepo").value = v;
-})();
-function histStatus(t, err) { const e = $("#histStatus"); e.textContent = t; e.style.color = err ? "var(--dg)" : ""; }
-const b64 = text => { const by = new TextEncoder().encode(text); let b = ""; for (let k = 0; k < by.length; k += 0x8000) b += String.fromCharCode.apply(null, by.subarray(k, k + 0x8000)); return btoa(b); };
-let histRunning = false;
-$("#histBtn").onclick = async () => {
-  if (histRunning) return;
-  const src = $("#histRepo").value.trim(), c = ghCfg();
-  if (!/^[\w.-]+\/[\w.-]+$/.test(src)) return histStatus("Dépôt public invalide : format attendu pseudo/nom-du-depot", 1);
-  if (!c) return histStatus("Journal GitHub non configuré : connectez-vous à Gmail, renseignez le dépôt privé (ex. pseudo/gmail-privatedata) et le jeton dans « Journal GitHub », puis revenez ici (la configuration est mémorisée).", 1);
-  try { localStorage.setItem(HISTK, src); } catch (e) {}
-  if (!confirm("Reproduire l’historique de « " + HISTSRC + " » de " + src + " dans " + c.repo + " ?\n\nUn commit par version, fichier « " + HISTFILE + " », ajouté à la suite de la branche principale (les autres fichiers ne sont pas modifiés).")) return;
-  histRunning = true; $("#histBtn").disabled = true; histStatus("⏳ Lecture de la liste des commits…");
-  const P = Prog.start("Historique de " + HISTSRC, 1000), ghH = { Accept: "application/vnd.github+json" };
-  const ghGet = async (url, extra) => { // lecture du dépôt public : avec le jeton (limite plus large), sans lui si GitHub le refuse
-    let r = await fetch(url, { headers: { ...ghH, ...extra, Authorization: "Bearer " + c.token } });
-    if (r.status === 401 || r.status === 403 || r.status === 404) { const r2 = await fetch(url, { headers: { ...ghH, ...extra } }); if (r2.ok || r.status === 401) r = r2; }
-    return r;
-  };
-  const W = { Authorization: "Bearer " + c.token, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, API = "https://api.github.com/repos/" + c.repo + "/git/";
-  let lastW = 0;
-  const gw = async (method, path, body, label) => { // écriture dans le dépôt privé : ≤ ~75 requêtes/min (limite GitHub : 80), nouvelle tentative si limite de débit
-    for (let t = 1; ; t++) {
-      const wait = 800 - (Date.now() - lastW); if (wait > 0) await sleep(wait); lastW = Date.now();
-      let r; try { r = await fetch(API + path, { method, headers: W, body: body ? JSON.stringify(body) : undefined }); }
-      catch (e) { if (t <= 6) { histStatus("⏳ Connexion à GitHub interrompue : nouvelle tentative " + t + " / 6 (" + (label || "") + ")…"); await sleep(3000 * t); continue; } throw e; }
-      if (r.ok) return await r.json();
-      if (r.status >= 500 && t <= 6) { histStatus("⏳ GitHub a répondu par une erreur " + r.status + " : nouvelle tentative " + t + " / 6 (" + (label || "") + ")…"); await sleep(3000 * t); continue; } // erreur serveur passagère
-      const j = await r.json().catch(() => ({})), m = j.message || "erreur " + r.status;
-      if ((r.status === 403 || r.status === 429) && /rate|abuse|secondary|retry/i.test(m + " " + (r.headers.get("retry-after") || "")) && t <= 6) {
-        const sec = Math.min(120, +(r.headers.get("retry-after") || 0) || 65); for (let k = sec; k > 0; k--) { histStatus("⏸ Limite de débit GitHub : reprise dans " + k + " s (" + (label || "") + ")…"); await sleep(1000); } continue;
-      }
-      if (r.status === 422 && /parent|sha|tree|not exist|not found|invalid/i.test(m) && t <= 8) { histStatus("⏳ GitHub n’a pas encore enregistré l’objet précédent : nouvelle tentative " + t + " / 8 (" + (label || "") + ")…"); await sleep(1500 * t); continue; } // délai de propagation de GitHub
-      const err = new Error(r.status === 401 ? "jeton refusé" : r.status === 404 ? "dépôt " + c.repo + " introuvable ou jeton sans accès" : r.status === 409 ? "le dépôt " + c.repo + " est vide : créez-y d’abord un fichier (par ex. un README, ou synchronisez le journal) puis relancez" : r.status === 403 ? "accès refusé (permission « Contents : Read and write » ?) — " + m : m); err.status = r.status; throw err;
-    }
-  };
-  try {
-    const commits = [];
-    for (let pg = 1; pg <= 100; pg++) {
-      const r = await ghGet("https://api.github.com/repos/" + src + "/commits?path=" + encodeURIComponent(HISTSRC) + "&per_page=100&page=" + pg);
-      if (!r.ok) throw new Error("liste des commits : " + (r.status === 404 ? "dépôt ou fichier introuvable (" + src + ")" : r.status === 403 ? "accès refusé ou limite GitHub atteinte, réessayez plus tard" : "erreur " + r.status));
-      const a = await r.json(); commits.push(...a); histStatus("⏳ Commits trouvés : " + fmt(commits.length) + "…");
-      if (a.length < 100) break;
-    }
-    if (!commits.length) throw new Error("aucun commit trouvé pour " + HISTSRC + " dans " + src);
-    commits.reverse(); // du plus ancien au plus récent
-    const N = commits.length; P.set(30, 1000);
-    let ri; for (let t = 1; ; t++) { ri = await fetch("https://api.github.com/repos/" + c.repo, { headers: W }); if (ri.status < 500 || t >= 5) break; await sleep(3000 * t); }
-    if (!ri.ok) throw new Error("dépôt " + c.repo + " : " + (ri.status === 401 ? "jeton refusé" : ri.status === 404 ? "introuvable ou jeton sans accès" : "erreur " + ri.status));
-    const br = (await ri.json()).default_branch, headSha = (await gw("GET", "ref/heads/" + br)).object.sha, headTree = (await gw("GET", "commits/" + headSha)).tree.sha;
-    const keyOf = (m, d) => d + "|" + m, have = new Set(); // contrôle anti-doublon : l’historique est-il déjà dans le dépôt du journal ?
-    for (let pg = 1; pg <= 20; pg++) {
-      const r = await fetch("https://api.github.com/repos/" + c.repo + "/commits?sha=" + encodeURIComponent(br) + "&path=" + encodeURIComponent(HISTFILE) + "&per_page=100&page=" + pg, { headers: W });
-      if (!r.ok) break; const a = await r.json(); a.forEach(x => have.add(keyOf(x.commit.message, x.commit.author && x.commit.author.date))); if (a.length < 100) break;
-    }
-    const c0 = commits[0].commit, c1 = commits[N - 1].commit;
-    if (have.has(keyOf(c0.message, c0.author.date)) && have.has(keyOf(c1.message, c1.author.date))) throw new Error("l’historique semble déjà reproduit dans " + c.repo + " (branche " + br + ") : aucun commit ajouté, pour éviter les doublons");
-    const codes = new Array(N); let next = 0, done = 0;
-    const getCode = async sha => {
-      let last = "";
-      for (let t = 1; t <= 3; t++) {
-        try { const r = await fetch("https://raw.githubusercontent.com/" + src + "/" + sha + "/" + HISTSRC); if (r.ok) return await r.text(); last = "erreur " + r.status; } catch (e) { last = e.message; }
-        try { const r = await ghGet("https://api.github.com/repos/" + src + "/contents/" + HISTSRC + "?ref=" + sha, { Accept: "application/vnd.github.raw+json" }); if (r.ok) return await r.text(); last = "erreur " + r.status; } catch (e) { last = e.message; }
-        await sleep(1000 * t);
-      }
-      throw new Error("version " + sha.slice(0, 7) + " illisible (" + last + ")");
-    };
-    await Promise.all(Array.from({ length: 4 }, async () => {
-      while (next < N) { const i = next++; codes[i] = await getCode(commits[i].sha); P.set(30 + 270 * (++done) / N, 1000); histStatus("⏳ Versions lues : " + fmt(done) + " / " + fmt(N) + "…"); }
-    }));
-    // création des commits : blob → tree (arbre du commit précédent, avec ce seul fichier remplacé) → commit (parent = commit précédent), même message, auteur et date que l’original
-    let parent = headSha, baseTree = headTree;
-    for (let i = 0; i < N; i++) {
-      const cm = commits[i], ci = cm.commit, who = o => ({ name: (o && o.name) || "?", email: (o && o.email) || "noreply@example.com", date: (o && o.date) || new Date().toISOString() });
-      const lbl = "version " + (i + 1) + " / " + N;
-      histStatus("⏳ Création du commit " + (i + 1) + " / " + N + "…");
-      const bl = await gw("POST", "blobs", { content: b64(codes[i]), encoding: "base64" }, lbl);
-      const tr = await gw("POST", "trees", { base_tree: baseTree, tree: [{ path: HISTFILE, mode: "100644", type: "blob", sha: bl.sha }] }, lbl);
-      const cmt = await gw("POST", "commits", { message: ci.message || "", tree: tr.sha, parents: [parent], author: who(ci.author), committer: who(ci.committer || ci.author) }, lbl);
-      parent = cmt.sha; baseTree = tr.sha; P.set(300 + 650 * (i + 1) / N, 1000);
-    }
-    histStatus("⏳ Mise à jour de la branche « " + br + " »…");
-    try { await gw("PATCH", "refs/heads/" + br, { sha: parent, force: false }); }
-    catch (e) { if (e.status === 422) throw new Error("la branche « " + br + " » a changé pendant l’opération (par exemple une synchronisation du journal) : aucun commit n’a été publié, relancez le bouton"); throw e; }
-    P.set(1000, 1000);
-    const ok = "✅ " + N + " commit(s) ajouté(s) à la branche « " + br + " » de " + c.repo + " (fichier " + HISTFILE + "). Sur GitHub : « History » du fichier.";
-    histStatus(ok); msg(ok);
-  } catch (e) { histStatus("❌ " + e.message, 1); msg("Reproduction de l’historique impossible : " + e.message, 1); }
-  finally { P.done(); histRunning = false; $("#histBtn").disabled = false; }
 };
 $("#ghClear").onclick = () => { try { localStorage.removeItem(GH); } catch (e) {} ghInit(); ghStatus("Jeton supprimé de ce navigateur."); };
 
