@@ -48,6 +48,7 @@ h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em}
 .srow .unsl .btn{width:100%}
 .srow .acts .tip{display:flex}
 .srow .acts .btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:100%;margin:0;padding:6px 9px;font-size:.88rem;line-height:1.15;text-align:center;white-space:nowrap}
+.srow .acts .btn.rf{flex:0 0 auto;width:34px;padding:6px 0;font-size:1rem}
 .srow .infoln{margin-top:8px}
 @media(max-width:620px){.srow .main{flex-wrap:wrap}.srow .acts{flex-wrap:wrap}.srow .unsl:empty{display:none}}
 .acts{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end}
@@ -335,7 +336,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.77"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.78"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -415,6 +416,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."]
   ["1.76", "Garde-fou multi-comptes : sélecteur de compte Google forcé à chaque connexion, champ « Compte à traiter » (connexion refusée si Google connecte une autre adresse), bandeau permanent coloré avec l’adresse connectée, adresse rappelée dans la confirmation de mise à la corbeille. Suppression du bouton provisoire « Reproduire l’historique » et de son code, devenus inutiles."],
   ["1.77", "Suppression du code de reprise des données d’avant la v1.75 (anciennes clés du navigateur et ancien journal GitHub à la racine du dépôt), devenu inutile."],
+  ["1.78", "Liste des expéditeurs : nouveau bouton ↻ (entre Info et Scannés) qui relit uniquement les mails de cet expéditeur déjà enregistrés dans les analyses : retire ceux qui ne sont plus dans le périmètre (corbeille, suppression, archivage), relit non lus, favoris, onglets, taille et dates des autres, puis met à jour la ligne, la taille globale et le nombre de messages comptés de l’analyse. Si tous ses mails ont disparu, la ligne reste affichée à 0 jusqu’au prochain affichage de l’analyse."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -1133,11 +1135,12 @@ function bannerScan(d) {
   ].filter(Boolean).join(" · ");
   return "<b>📊 Analyse affichée</b> · <b>" + esc(scanLabel(d)) + "</b>" + (sizeTxt(d.scope) ? "<br><b>" + esc(sizeNote(d.scope)) + "</b> — ce n’est pas une analyse de toute la boîte : les mails plus petits sont exclus (non comptés, non supprimés par « Scannés » ni « Tous »). Les rangs s’entendent parmi ces seuls mails." : "") + "<br>" + esc(rest) + sizeLine([d]);
 }
-function showScan(d) {
+function showScan(d, keepList) {
   scanData = d; cumulView = false;
   setBanner(bannerScan(d)); renderScans();
-  showSenders(Object.values(d.map).sort((a, b) => b.n - a.n), d.scope);
+  if (keepList !== true) showSenders(Object.values(d.map).sort((a, b) => b.n - a.n), d.scope);
 }
+let cumulList = [];
 let ovlSet = new Set(); // identifiants des analyses qui se chevauchent (cadre jaune dans la liste)
 function cumulOverlaps() { // exact si les identifiants des mails sont mémorisés, sinon d’après le périmètre et les rangs
   const info = scans.map(d => { const S = Object.values(d.map); let set = null; if (S.every(o => o.ids && o.ids.length === o.n)) { set = new Set(); S.forEach(o => o.ids.forEach(id => set.add(id))); } return { d, set }; });
@@ -1150,7 +1153,7 @@ function cumulOverlaps() { // exact si les identifiants des mails sont mémoris�
   }
   return { pairs, ids };
 }
-function showCumul() {
+function showCumul(keepList) {
   const m = {};
   scans.forEach(d => Object.values(d.map).forEach(o => {
     const x = m[o.email] || (m[o.email] = { ...o, n: 0, ids: o.ids ? [] : null, u: 0, s: 0, cat: null, t0: 0, t1: 0, nStats: 0, z: 0, zn: 0 });
@@ -1172,7 +1175,9 @@ function showCumul() {
     : "<br>✅ Aucun chevauchement : chaque mail n’est compté qu’une fois.";
   cumulView = true; renderScans();
   setBanner("<b>📊 Cumul de " + scans.length + " analyses</b>" + ovMsg + (scans.some(d => sizeTxt(d.scope)) ? "<br><b>📏 Analyses filtrées sur la taille dans ce cumul :</b> " + esc([...new Set(scans.filter(d => sizeTxt(d.scope)).map(d => "mails " + sizeTxt(d.scope)))].join(", ")) + " (les autres analyses n’ont pas de filtre de taille)." : "") + "<br>Le périmètre, l’ancienneté et la taille minimale de « Tous » sont ceux des réglages ci-dessus." + sizeLine(scans));
-  showSenders(Object.values(m).sort((a, b) => b.n - a.n), curScope());
+  const lst = Object.values(m).sort((a, b) => b.n - a.n);
+  if (keepList === true) { cumulList = lst; return; }
+  showSenders(lst, curScope());
 }
 function purgeSender(email, set) { // set = identifiants supprimés ; null = tout l'expéditeur
   scans.forEach(x => {
@@ -1456,6 +1461,7 @@ async function unsubscribe(s, btn) {
 }
 const CAT_LBL = { PROMOTIONS: "Promotions", SOCIAL: "Réseaux sociaux", UPDATES: "Notifications", FORUMS: "Forums" };
 function badges(s) { // indicateurs tirés de l’analyse (sans requête supplémentaire)
+  if (s.gone) return ["💾 0 Mo", "✅ plus aucun mail (actualisé)"];
   const L = [], n = s.nStats || s.n;
   if (s.t0 && n) { const u = Math.min(s.u || 0, n); L.push("📭 " + Math.round(100 * u / n) + " % non lus (" + fmt(u) + " / " + fmt(n) + ")"); }
   if (hasSize(s)) L.push("💾 " + fmtSize(s.z));
@@ -1495,6 +1501,70 @@ async function fillTotals(list, scope) { // en arrière-plan : totaux des seuls 
     }
   }));
 }
+let rowMaker = null, rfBusy = false;
+async function metaMin(id) { // libellés, taille et date d’un mail ; null = le mail n’existe plus
+  for (let t = 1; ; t++) {
+    try { return await api("messages/" + id + "?format=minimal&fields=labelIds,sizeEstimate,internalDate"); }
+    catch (e) { if (e.status === 404) return null; if (t >= 6 || !(e.status === 429 || (e.status === 403 && /rate|quota/i.test(e.message)))) throw e; await sleep(1500 * t); }
+  }
+}
+async function refreshSender(s, row) { // relit les seuls mails de l’expéditeur enregistrés dans les analyses et met à jour la ligne et la taille globale
+  if (running || rfBusy) return msg(rfBusy ? "Une actualisation est déjà en cours : attendez sa fin." : "Une analyse ou un calcul est en cours : attendez sa fin.", 1);
+  const email = s.email, targets = scans.filter(d => { const o = d.map[email]; return o && o.ids && o.ids.length === o.n; });
+  if (!targets.length) return msg("Actualisation impossible : les analyses enregistrées ne mémorisent pas les identifiants des mails de cet expéditeur (analyse à refaire).", 1);
+  rfBusy = true; running = true; sizeRun = true;
+  const btns = row.querySelectorAll("button[data-s], button[data-r]"); btns.forEach(x => x.disabled = true);
+  let p = Prog.start("Actualisation de " + email + " : recherche", 1), ok = false;
+  try {
+    msg("Actualisation de " + email + "…");
+    const plans = [], before = targets.reduce((a, d) => a + d.map[email].n, 0);
+    for (const d of targets) { // 1) quels mails de l’analyse sont encore dans le périmètre ? (une recherche par analyse)
+      const o = d.map[email], listed = new Set(await listIds("from:" + email + " " + d.scope));
+      plans.push({ d, o, keep: [...new Set(o.ids)].filter(i => listed.has(i)), f: [] });
+    }
+    p.done(); p = null;
+    const jobs = plans.flatMap(pl => pl.keep.map(id => [pl, id]));
+    if (jobs.length) { // 2) relecture légère des mails restants (libellés, taille, date)
+      p = Prog.start("Actualisation de " + email + " : lecture des mails", jobs.length);
+      let next = 0, doneN = 0, expired = false, failed = 0;
+      await Promise.all(Array.from({ length: 10 }, async () => {
+        while (next < jobs.length && !expired) {
+          const [pl, id] = jobs[next++];
+          try { const m = await metaMin(id); if (m) pl.f.push([id, m]); }
+          catch (e) { if (/expir/.test(e.message)) expired = true; else failed++; }
+          p.set(++doneN);
+        }
+      }));
+      if (expired) throw new Error("Session Google expirée : reconnectez-vous puis relancez l’actualisation.");
+      if (failed) throw new Error(fmt(failed) + " mail(s) illisible(s) : actualisation annulée, rien n’a été modifié. Réessayez.");
+    }
+    let after = 0, size = 0;
+    plans.forEach(pl => { // 3) mise à jour des analyses
+      const o = pl.o; o.ids = pl.f.map(x => x[0]); o.n = o.ids.length;
+      o.u = 0; o.s = 0; o.z = 0; o.zn = 0; o.cat = {}; o.t0 = 0; o.t1 = 0;
+      pl.f.forEach(([id, m]) => {
+        const lb = m.labelIds || [], mt = +m.internalDate;
+        if (mt) { o.t0 = o.t0 ? Math.min(o.t0, mt) : mt; o.t1 = Math.max(o.t1, mt); }
+        if (lb.includes("UNREAD")) o.u++;
+        if (lb.includes("STARRED")) o.s++;
+        if (m.sizeEstimate) { o.z += +m.sizeEstimate || 0; o.zn++; }
+        const ck = (lb.find(x => x.startsWith("CATEGORY_")) || "CATEGORY_AUCUNE").slice(9); o.cat[ck] = (o.cat[ck] || 0) + 1;
+      });
+      after += o.n; size += o.z;
+      if (!o.n) delete pl.d.map[email];
+    });
+    saveScan();
+    let ns; // 4) affichage : bannière et liste des analyses, puis seule la ligne concernée est redessinée (sans changer l’ordre)
+    if (cumulView) { showCumul(true); ns = cumulList.find(x => x.email === email); } else { showScan(scanData, true); ns = scanData.map[email]; }
+    ns = ns || { email, name: s.name, unsub: s.unsub, n: 0, z: 0, zn: 0, ids: [], gone: true };
+    const i = curSend.list.indexOf(s); if (i >= 0) curSend.list[i] = ns;
+    cntCache.clear(); totCache.forEach((v, k) => { if (k.endsWith("|" + email)) totCache.delete(k); });
+    if (row.isConnected && rowMaker) { const nr = rowMaker(ns); row.replaceWith(nr); paintWr(); if (isPartial()) fillTotals([ns], curSend.scope); }
+    ok = true;
+    msg(!after ? "✅ " + email + " : plus aucun mail dans l’analyse (" + fmt(before) + " retiré(s)) ; compteurs et taille remis à 0." : "✅ " + email + " : " + fmt(after) + " mail(s) restant(s) sur " + fmt(before) + " (" + fmtSize(size) + ").");
+  } catch (e) { msg(e.message, 1); }
+  finally { if (p) p.done(); running = false; sizeRun = false; rfBusy = false; if (!ok) btns.forEach(x => x.disabled = false); }
+}
 function renderSenders() {
   const partial = isPartial(); $("#viewMode").hidden = !partial; // le choix du nombre n’a de sens que si l’analyse est partielle
   if (!partial && senderMode === "total") { senderMode = "scan"; totRun++; updMode(); }
@@ -1515,7 +1585,7 @@ function renderSenders() {
   $("#sfilterInfo").textContent = !every.length ? "" : q ? fmt(list.length) + " résultat(s) sur " + fmt(every.length) + " expéditeurs" : "Les 50 premiers sur " + fmt(every.length) + " expéditeurs : utilisez la recherche pour trouver les autres.";
   const inbox = splitScope(scope)[0] === SC_INBOX, scLabel = scopeName(scope);
   const box = $("#senders"); box.innerHTML = list.length ? "" : "<p class='mut'>Aucun résultat.</p>";
-  list.forEach(s => {
+  const mkRow = s => {
     const canScanned = s.ids && s.ids.length && s.ids.length === s.n, sq = scannedQuery(s.email);
     const r = document.createElement("div"); r.className = "row";
     r.className = "row srow"; r.dataset.em = s.email; const bl = badges(s);
@@ -1524,9 +1594,10 @@ function renderSenders() {
       <span class="tip" data-v="1"><a class="btn sec" target="_blank" rel="noopener" href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent("from:" + s.email)}">Voir</a></span>
       <span class="tip" data-vs="1">${sq ? `<a class="btn sec" target="_blank" rel="noopener" href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent(sq.q)}">Voir scannés</a>` : `<button class="btn sec off" type="button" aria-disabled="true">Voir scannés</button>`}</span>
       <span class="tip" data-tip="Affiche une ligne par bouton (Voir, Voir scannés, Scannés, Tous) avec le nombre exact de mails concernés et ce que ce nombre mesure."><button class="btn sec" data-i="1" type="button">Info</button></span>
+      <span class="tip" data-tip="Relit uniquement les mails de cet expéditeur enregistrés dans l’analyse (par exemple après les avoir supprimés) et met à jour cette ligne : nombre de mails, taille, non lus, favoris, ainsi que la taille globale de l’analyse. Les mails reçus depuis l’analyse ne sont pas ajoutés."><button class="btn sec rf" data-r="1" type="button" aria-label="Actualiser cette ligne">↻</button></span>
       ${canScanned
         ? `<span class="tip" data-tip="Met à la corbeille uniquement les ${fmt(s.n)} mail(s) de cet expéditeur identifiés lors de l’analyse affichée."><button class="btn or" data-s="scanned" type="button">Scannés</button></span>`
-        : `<span class="tip" data-tip="Indisponible : cette analyse date d’avant la v1.14 (ou a été reprise depuis une ancienne version). Refaites-la pour mémoriser les identifiants des messages."><button class="btn or off" type="button" aria-disabled="true">Scannés</button></span>`}
+        : `<span class="tip" data-tip="${s.gone ? "Plus aucun mail scanné pour cet expéditeur (ligne actualisée)." : "Indisponible : cette analyse date d’avant la v1.14 (ou a été reprise depuis une ancienne version). Refaites-la pour mémoriser les identifiants des messages."}"><button class="btn or off" type="button" aria-disabled="true">Scannés</button></span>`}
       <span class="tip" data-tip="Met à la corbeille TOUS les mails de cet expéditeur dans le périmètre choisi (${esc(scLabel)}), même hors de la zone analysée. Envoyés et brouillons épargnés.${guardTxt() ? " Épargnés aussi : " + guardTxt() + "." : ""}"><button class="btn dg" data-s="all" type="button">Tous</button></span></span></div>`;
     const info = document.createElement("div"); info.className = "infoln"; info.hidden = true; r.appendChild(info);
     const viewTip = () => "Ouvre Gmail sur TOUS les mails de cet expéditeur, sans aucun filtre d’ancienneté ni de périmètre : toute la messagerie (spam et corbeille exclus), mails récents compris. Pour ne voir que ceux de l’analyse affichée, utilisez « Voir scannés »."; // aucun filtre d’ancienneté ici
@@ -1545,6 +1616,7 @@ function renderSenders() {
     });
     vtEl.addEventListener("mouseleave", () => clearTimeout(vtm));
     const ub = r.querySelector("[data-u]"); if (ub) ub.onclick = () => unsubscribe(s, ub);
+    r.querySelector("[data-r]").onclick = () => refreshSender(s, r);
     r.querySelector("[data-i]").onclick = async e => {
       const ib = e.currentTarget; ib.disabled = true; info.hidden = false; info.textContent = "⏳ Calcul en cours…";
       const pI = Prog.start("Info : calcul des nombres de mails", 3), tick = (() => { let k = 0; return x => { pI.set(++k); return x; }; })();
@@ -1604,8 +1676,9 @@ function renderSenders() {
       } catch (e) { msg(e.message, 1); }
       if (!n) r.querySelectorAll("button[data-s]").forEach(x => x.disabled = false);
     });
-    box.appendChild(r);
-  });
+    return r;
+  };
+  rowMaker = mkRow; list.forEach(s => box.appendChild(mkRow(s)));
   if (partial) fillTotals(list, scope);
   writtenFill(list);
 }
