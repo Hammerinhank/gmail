@@ -121,6 +121,7 @@ table.dist td.r{text-align:right}
 
 <!-- ===== PAGE DE CONFIGURATION ===== -->
 <section id="setup" hidden>
+  <div class="card" style="border-color:#7b1fa2"><b>🧪 Envie d’essayer sans rien configurer ?</b> <span class="mut">La démonstration utilise une fausse boîte aux lettres : aucun compte Google, aucune donnée personnelle.</span><br><button class="btn" id="demoGo2" type="button">Lancer la démonstration</button></div>
   <h1>👋 Bienvenue : configurons l’accès à Gmail</h1>
   <p>Pour que cette application puisse lire et trier vos mails, Google exige que vous créiez <b>votre propre « identifiant client OAuth »</b> (c’est gratuit, 5 minutes). Il suffit de suivre les 5 étapes ci‑dessous.</p>
   <div class="okb"><b>Bon à savoir :</b> il n’y a <b>pas de clé API ni de « secret »</b> à copier. Seul l’<b>ID client</b> est nécessaire. Il est enregistré uniquement dans le <code>localStorage</code> de votre navigateur : rien n’est envoyé à un serveur tiers, et le code ne contient aucun secret.</div>
@@ -172,6 +173,13 @@ table.dist td.r{text-align:right}
 <!-- ===== APPLICATION ===== -->
 <section id="app" hidden>
   <div id="acctBar" hidden role="status"></div>
+  <div id="demoBar" class="card" hidden style="border-color:#7b1fa2">
+    <b>🧪 Mode démonstration</b> <span class="mut">Les suppressions n’affectent que cette fausse boîte.</span><br>
+    <button class="btn" id="demoReset" type="button">↩️ Restaurer les données de démo initiales</button>
+    <button class="btn sec" id="demoAdd" type="button">➕ Ajouter de nouvelles données de démo</button>
+    <button class="btn sec" id="demoQuit" type="button">Quitter la démo</button>
+    <div class="mut" id="demoInfo"></div>
+  </div>
   <header>
     <h1>🧹 Ménage Gmail</h1>
     <button class="btn sec" id="reset" type="button">Réinitialiser les clés</button>
@@ -185,6 +193,7 @@ table.dist td.r{text-align:right}
     <input type="email" id="expAcct" placeholder="adresse@gmail.com" autocomplete="off" spellcheck="false" style="margin:4px 0 8px;display:block;box-sizing:border-box;width:100%;max-width:36em">
     <p class="mut" style="margin:0 0 8px">Si Google connecte un autre compte que celui-ci, la connexion est refusée. Laissez vide à la première connexion : l’adresse connectée vous sera demandée puis mémorisée.</p>
     <button class="btn" id="go" type="button">Se connecter à Gmail</button>
+    <button class="btn sec" id="demoGo" type="button">🧪 Essayer la démonstration (données factices)</button>
   </div>
 
   <div id="tools" hidden>
@@ -296,6 +305,32 @@ table.dist td.r{text-align:right}
 </section>
 </main>
 
+<dialog id="demoDlg" style="max-width:760px">
+  <h2>Ajouter de nouvelles données de démo</h2>
+  <p class="mut">Les nouveaux expéditeurs sont ajoutés à la boîte de démo en cours et aux données d’origine (<code>demo/init.json</code>) : ils réapparaîtront à chaque « Restaurer ». Un expéditeur dont l’adresse existe déjà est remplacé.</p>
+  <ol>
+    <li>Copiez la requête ci-dessous, complétez la « demande spécifique », puis donnez-la à une IA.</li>
+    <li>Collez ici le JSON qu’elle produit (ou chargez-le depuis un fichier).</li>
+    <li>Ajoutez-le à la démo.</li>
+  </ol>
+  <p><button class="btn sec" id="demoCopyPrompt" type="button">📋 Copier la requête pour l’IA</button> <button class="btn sec" id="demoShowPrompt" type="button">👁 Afficher / masquer la requête</button></p>
+  <textarea id="demoPromptTxt" readonly hidden rows="12" style="width:100%;font:.82rem/1.4 monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px"></textarea>
+  <p style="margin:10px 0 4px"><b>JSON produit par l’IA</b> <input type="file" id="demoFile" accept=".json,application/json,text/plain" style="max-width:100%"></p>
+  <textarea id="demoJson" rows="9" spellcheck="false" placeholder='{"format":"menage-gmail-demo","version":1,"senders":[ … ]}' style="width:100%;font:.82rem/1.4 monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px"></textarea>
+  <div id="demoCheck" class="mut" style="margin:4px 0 8px"></div>
+  <details open><summary><b>Enregistrement dans le dépôt GitHub public</b> (fichier <code>demo/init.json</code>)</summary>
+    <p class="mut" style="margin:6px 0">Dépôt qui héberge cette page (pas le dépôt privé du journal) et jeton « fine-grained » limité à ce seul dépôt, permission <b>Contents : Read and write</b>. Le fichier est créé s’il n’existe pas.</p>
+    <input type="text" id="demoRepo" placeholder="pseudo/nom-du-depot" style="margin-bottom:6px">
+    <input type="password" id="demoTok" placeholder="github_pat_…" autocomplete="off">
+    <label class="mut" style="display:block;margin-top:6px"><input type="checkbox" id="demoRemember" checked> Mémoriser le dépôt et le jeton dans ce navigateur</label>
+  </details>
+  <div style="text-align:right;margin-top:10px">
+    <button class="btn" id="demoAddGh" type="button">Ajouter et enregistrer dans demo/init.json</button>
+    <button class="btn sec" id="demoAddLocal" type="button">Ajouter seulement dans ce navigateur</button>
+    <button class="btn sec" id="demoDlgClose" type="button">Fermer</button>
+  </div>
+</dialog>
+
 <dialog id="verDlg">
   <h2>Historique des versions</h2>
   <ul id="verList" style="padding-left:18px"></ul>
@@ -336,7 +371,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.79"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.80"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -418,10 +453,12 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.77", "Suppression du code de reprise des données d’avant la v1.75 (anciennes clés du navigateur et ancien journal GitHub à la racine du dépôt), devenu inutile."],
   ["1.78", "Liste des expéditeurs : nouveau bouton ↻ (entre Info et Scannés) qui relit uniquement les mails de cet expéditeur déjà enregistrés dans les analyses : retire ceux qui ne sont plus dans le périmètre (corbeille, suppression, archivage), relit non lus, favoris, onglets, taille et dates des autres, puis met à jour la ligne, la taille globale et le nombre de messages comptés de l’analyse. Si tous ses mails ont disparu, la ligne reste affichée à 0 jusqu’au prochain affichage de l’analyse."],
   ["1.79", "Champ « Compte à traiter » élargi (pleine largeur disponible, jusqu’à environ 36 caractères) pour que l’adresse e-mail ne soit plus tronquée."],
+  ["1.80", "Mode démonstration : bouton « Essayer la démonstration » (écran de configuration et écran de connexion, ou adresse terminée par ?demo). Fausse boîte Gmail construite à partir de demo/init.json du dépôt public, sans compte Google ni réseau ; mises à la corbeille conservées entre deux visites. Bouton « Restaurer les données de démo initiales » (efface aussi analyses, journal et courbes de la démo) et bouton « Ajouter de nouvelles données de démo » : colle un JSON produit par une IA (requête prête à copier incluse), le fusionne dans demo/init.json via GitHub (jeton Contents : Read and write sur le dépôt public) ou seulement dans ce navigateur. Désinscription et ouverture de Gmail désactivées en démo."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
 let token = null;
+let DEMO_ON = false; // mode démonstration (fausse boîte, voir plus bas)
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const getId = () => { try { return localStorage.getItem(LS) || ""; } catch (e) { return ""; } };
@@ -438,7 +475,7 @@ function msg(t, err) { const m = $("#msg"); $("#msgTxt").textContent = t; m.clas
 $("#msgX").onclick = () => msg("");
 
 function render() {
-  const has = !!getId();
+  const has = !!getId() || DEMO_ON;
   $("#setup").hidden = has; $("#app").hidden = !has;
   if (!has) {
     $("#origin").textContent = location.origin === "null" ? "(origine inconnue : lancez un serveur local)" : location.origin;
@@ -534,6 +571,7 @@ const Prog = (() => {
   };
 })();
 async function api(path, opt = {}) {
+  if (DEMO_ON) return demoApi(path, opt);
   const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/" + path, { ...opt, headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
   if (r.status === 401) { token = null; setAcctBar(""); $("#tools").hidden = true; $("#connect").hidden = false; throw new Error("Session expirée : reconnectez‑vous."); }
   if (!r.ok) { const j = await r.json().catch(() => ({})); const er = new Error(j.error?.message || "Erreur " + r.status); er.status = r.status; throw er; }
@@ -587,7 +625,7 @@ let distData = { points: [] };
 const saveDist = () => wrJ("dist", distData);
 function mergeDist(x) { const m = new Map(); [...distData.points, ...((x && x.points) || [])].forEach(e => m.set(e.t, e)); distData.points = [...m.values()].sort((a, b) => a.t - b.t); }
 const saveLog = () => wrJ("log", logData);
-const ghCfg = () => { try { return JSON.parse(localStorage.getItem(GH) || "null"); } catch (e) { return null; } };
+const ghCfg = () => { if (DEMO_ON) return null; try { return JSON.parse(localStorage.getItem(GH) || "null"); } catch (e) { return null; } };
 function ghStatus(t, err) { const e = $("#ghStatus"); e.textContent = t; e.style.color = err ? "var(--dg)" : ""; if (err) $("#ghDet").open = true; }
 function ghInit() {
   const c = ghCfg(); $("#ghRepo").value = c?.repo || "";
@@ -1431,6 +1469,7 @@ const cntDual = (s, scope) => { // « scannés / total » : la valeur du bouton 
 const fmtSize = b => b >= 1073741824 ? (b / 1073741824).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " Go" : b >= 1048576 ? (b / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: b >= 10485760 ? 0 : 1 }) + " Mo" : Math.max(1, Math.round(b / 1024)).toLocaleString("fr-FR") + " Ko";
 const hasSize = x => !!x.zn && x.zn >= x.n; // taille connue pour tous les mails scannés de l’expéditeur
 async function unsubscribe(s, btn) {
+  if (DEMO_ON) return msg("🧪 Démo : désinscription simulée pour " + s.email + " ; aucune demande n’est envoyée.");
   // Un lien « 1 clic » (RFC 8058) n’accepte que POST : l’ouvrir dans un onglet (GET) donne « HTTP ERROR 400 ».
   const w = window.open("about:blank", "_blank"); // ouvert tout de suite (clic de l’utilisateur) pour ne pas être bloqué après les requêtes
   const old = btn.textContent;
@@ -1703,7 +1742,288 @@ document.title = "Ménage Gmail v" + VERSION;
 document.addEventListener("click", e => { const t = e.target.closest && e.target.closest(".tip"); if (t) t.classList.add("nt"); }, true);
 document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip"); if (t && !t.contains(e.relatedTarget)) t.classList.remove("nt"); });
 document.addEventListener("touchstart", () => document.querySelectorAll(".tip").forEach(t => t.classList.add("nt")), { capture: true, passive: true });
+// ===== MODE DÉMONSTRATION : fausse boîte Gmail construite à partir de demo/init.json (dépôt public) =====
+// Toutes les requêtes passent par demoApi() au lieu de l’API Gmail : aucun vrai compte, aucun réseau (sauf lecture/écriture de demo/init.json).
+const DEMO_ACCT = "demo@menage-gmail.demo", DEMO_PFX = "gmailMenage.demo.", DEMO_FORMAT = "menage-gmail-demo";
+const DEMO_CATS = { primary: "CATEGORY_PERSONAL", promotions: "CATEGORY_PROMOTIONS", social: "CATEGORY_SOCIAL", updates: "CATEGORY_UPDATES", forums: "CATEGORY_FORUMS" };
+const DEMO_SYS = ["INBOX", "SENT", "DRAFT", "SPAM", "TRASH", "UNREAD", "STARRED", "IMPORTANT", "CATEGORY_PERSONAL", "CATEGORY_SOCIAL", "CATEGORY_PROMOTIONS", "CATEGORY_UPDATES", "CATEGORY_FORUMS"];
+const DEMO_DAY = 86400000;
+let demoMsgs = [], demoById = new Map(), demoLabels = new Map(), demoInit = [], demoMods = {}, demoSaveT = null, demoQc = new Map(), demoVer = 0, demoTick = 0, demoLast = null;
+const demoStore = {
+  get: k => { try { return JSON.parse(localStorage.getItem(DEMO_PFX + k) || "null"); } catch (e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(DEMO_PFX + k, JSON.stringify(v)); } catch (e) { msg("Démo : sauvegarde locale impossible (stockage plein ?).", 1); } },
+  del: k => { try { localStorage.removeItem(DEMO_PFX + k); } catch (e) {} }
+};
+function demoHash(s) { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
+function demoRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function demoDate(v, dflt) {
+  if (typeof v === "number" && isFinite(v)) return Date.now() - v * DEMO_DAY;
+  if (typeof v === "string" && v.trim()) { const t = Date.parse(v); if (!isNaN(t)) return t; }
+  return dflt;
+}
+const demoNum = (v, d, lo, hi) => { v = Number(v); if (!isFinite(v)) v = d; return Math.min(hi, Math.max(lo, Math.round(v))); };
+const demoTotalOf = s => s.count + s.archived + s.trash + s.spam + s.sentTo;
+function demoNormSender(x, errs, i) { // vérifie et complète un expéditeur ; null si inutilisable
+  const w = "Expéditeur n° " + (i + 1) + (x && x.email ? " (" + x.email + ")" : "");
+  if (!x || typeof x !== "object") { errs.push(w + " : objet attendu."); return null; }
+  const email = String(x.email || "").trim().toLowerCase();
+  if (!/^[^@\s<>"]+@[^@\s<>"]+\.[^@\s<>"]+$/.test(email)) { errs.push(w + " : adresse e-mail invalide."); return null; }
+  const cat = String(x.category || "primary").toLowerCase(), list = (v, n, len) => (Array.isArray(v) ? v : []).map(t => String(t).replace(/[\r\n]/g, " ").trim().slice(0, len)).filter(Boolean).slice(0, n);
+  const unsub = String(x.unsubscribe || "").trim();
+  const s = {
+    email, name: String(x.name || "").replace(/[<>"\r\n]/g, "").trim().slice(0, 80) || email, category: DEMO_CATS[cat] ? cat : "primary",
+    count: demoNum(x.count, 0, 0, 50000), archived: demoNum(x.archived, 0, 0, 50000), trash: demoNum(x.trash, 0, 0, 50000), spam: demoNum(x.spam, 0, 0, 50000), sentTo: demoNum(x.sentTo, 0, 0, 5000),
+    unreadPct: demoNum(x.unreadPct, 0, 0, 100), starred: demoNum(x.starred, 0, 0, 50000), important: demoNum(x.important, 0, 0, 50000), attachmentPct: demoNum(x.attachmentPct, 0, 0, 100),
+    avgSizeKB: Math.min(40000, Math.max(1, Number(x.avgSizeKB) || 40)), first: x.first == null ? null : x.first, last: x.last == null ? null : x.last,
+    subjects: list(x.subjects, 20, 120), unsubscribe: /^(https?:|mailto:)/i.test(unsub) ? unsub.slice(0, 300) : "", oneClick: !!x.oneClick, labels: list(x.labels, 5, 40)
+  };
+  if (demoTotalOf(s) === 0) { errs.push(w + " : aucun mail (count, archived, trash, spam et sentTo sont tous à 0)."); return null; }
+  return s;
+}
+function demoValidate(obj) { // accepte { senders: [...] } ou directement une liste ; le dernier doublon d’adresse l’emporte
+  const errors = [], arr = Array.isArray(obj) ? obj : obj && Array.isArray(obj.senders) ? obj.senders : null;
+  if (!arr) return { senders: [], errors: ["Format inattendu : une liste « senders » est attendue."] };
+  const m = new Map(); arr.forEach((x, i) => { const s = demoNormSender(x, errors, i); if (s) m.set(s.email, s); });
+  return { senders: [...m.values()], errors };
+}
+const demoLabelId = n => { const id = "Label_" + demoHash(n).toString(36); demoLabels.set(n, id); return id; };
+function demoExpand(s) { // un expéditeur → ses faux mails (tirage déterministe : mêmes mails à chaque reconstruction)
+  const out = [], h1 = demoHash(s.email), rng = demoRng(h1), pre = "d" + h1.toString(16).padStart(8, "0") + demoHash("x" + s.email).toString(16).padStart(8, "0");
+  const now = Date.now(), lastT = demoDate(s.last, now - DEMO_DAY), firstT = demoDate(s.first, lastT - 3 * 365 * DEMO_DAY), lo = Math.min(firstT, lastT), hi = Math.max(firstT, lastT);
+  const box = s.count + s.archived + s.trash + s.spam, idx = Array.from({ length: box }, (_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  const place = new Array(box); let p = 0;
+  [["in", s.count], ["ar", s.archived], ["tr", s.trash], ["sp", s.spam]].forEach(([k, n]) => { for (let q = 0; q < n; q++) place[idx[p++]] = k; });
+  const live = []; for (let i = 0; i < box; i++) if (place[i] === "in" || place[i] === "ar") live.push(i);
+  const choose = n => { const c = live.slice(); for (let i = c.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [c[i], c[j]] = [c[j], c[i]]; } return new Set(c.slice(0, Math.min(n, c.length))); };
+  const star = choose(s.starred), imp = choose(s.important), uids = s.labels.map(demoLabelId), cat = DEMO_CATS[s.category];
+  for (let i = 0; i < box; i++) {
+    const t = Math.round(i === 0 ? lo : i === 1 ? hi : lo + (hi - lo) * Math.pow(rng(), 0.7)), pl = place[i], L = [cat];
+    if (pl === "in") L.push("INBOX"); else if (pl === "tr") L.push("TRASH"); else if (pl === "sp") L.push("SPAM");
+    if (pl === "in" || pl === "ar") uids.forEach(u => L.push(u));
+    if (rng() * 100 < s.unreadPct) L.push("UNREAD");
+    if (star.has(i)) L.push("STARRED");
+    if (imp.has(i)) L.push("IMPORTANT");
+    const z = Math.max(1500, Math.round(s.avgSizeKB * 1024 * (0.4 + 1.2 * rng()))), att = rng() * 100 < s.attachmentPct;
+    out.push({ id: pre + "_" + i, labels: L, z, t, from: s.name + " <" + s.email + ">", fromEmail: s.email, to: DEMO_ACCT, subject: s.subjects.length ? s.subjects[Math.floor(rng() * s.subjects.length)] : "Message de " + s.name, att, unsub: s.unsubscribe, oneClick: s.oneClick, src: s.email });
+  }
+  for (let k = 0; k < s.sentTo; k++) {
+    const t = Math.round(lo + (hi - lo) * rng());
+    out.push({ id: pre + "_s" + k, labels: ["SENT"], z: Math.round(3072 + rng() * 28672), t, from: "Moi <" + DEMO_ACCT + ">", fromEmail: DEMO_ACCT, to: s.email, subject: "Re: " + (s.subjects.length ? s.subjects[Math.floor(rng() * s.subjects.length)] : s.name), att: false, unsub: "", oneClick: false, src: s.email });
+  }
+  return out;
+}
+function demoIndex() { demoMsgs.sort((a, b) => b.t - a.t || (a.id < b.id ? -1 : 1)); demoById = new Map(demoMsgs.map(m => [m.id, m])); demoQc.clear(); demoLast = null; demoVer++; }
+function demoBuild(senders) { // reconstruit toute la boîte à partir des données d’origine, puis rejoue les modifications enregistrées (mises à la corbeille…)
+  demoLabels = new Map(); demoMsgs = [];
+  senders.forEach(s => { for (const m of demoExpand(s)) demoMsgs.push(m); });
+  demoIndex();
+  Object.entries(demoMods).forEach(([id, l]) => { const m = demoById.get(id); if (m) m.labels = l.slice(); });
+}
+const demoSaveSoon = () => { clearTimeout(demoSaveT); demoSaveT = setTimeout(() => { demoSaveT = null; demoStore.set("mods", demoMods); }, 400); };
+window.addEventListener("pagehide", () => { if (DEMO_ON && demoSaveT) { clearTimeout(demoSaveT); demoSaveT = null; demoStore.set("mods", demoMods); } });
+
+// --- Recherche : sous-ensemble de la syntaxe Gmail utilisé par l’application ---
+function demoTerm(t) {
+  const k = t.indexOf(":"), has = l => m => m.labels.includes(l);
+  if (k < 0) { const w = t.toLowerCase(); return m => (m.from + " " + m.subject).toLowerCase().includes(w); }
+  const op = t.slice(0, k).toLowerCase(), v = t.slice(k + 1), lv = v.toLowerCase();
+  const bytes = x => { const g = String(x).match(/^(\d+(?:\.\d+)?)([kmg]?)b?$/i); return g ? parseFloat(g[1]) * ({ "": 1, k: 1024, m: 1048576, g: 1073741824 })[g[2].toLowerCase()] : NaN; };
+  const ts = x => /^\d{9,}$/.test(x) ? +x * 1000 : Date.parse(String(x).replace(/\//g, "-"));
+  switch (op) {
+    case "in": return lv === "anywhere" ? () => true : has(({ inbox: "INBOX", sent: "SENT", drafts: "DRAFT", draft: "DRAFT", trash: "TRASH", spam: "SPAM", chats: "CHAT", scheduled: "SCHEDULED", starred: "STARRED", important: "IMPORTANT" })[lv] || lv.toUpperCase());
+    case "is": return lv === "read" ? m => !m.labels.includes("UNREAD") : has(({ unread: "UNREAD", starred: "STARRED", important: "IMPORTANT", snoozed: "SNOOZED" })[lv] || lv.toUpperCase());
+    case "category": return has(lv === "primary" ? "CATEGORY_PERSONAL" : "CATEGORY_" + lv.toUpperCase());
+    case "has": return lv === "attachment" ? m => !!m.att : lv === "userlabels" ? m => m.labels.some(l => l.startsWith("Label_")) : () => false;
+    case "label": { const norm = s => s.toLowerCase().replace(/[\s/]+/g, "-"); return m => { const ids = [...demoLabels].filter(([n]) => norm(n) === lv).map(([, id]) => id); ids.push(lv.toUpperCase()); return ids.some(id => m.labels.includes(id)); }; }
+    case "larger": { const b = bytes(v); return m => m.z > b; }
+    case "smaller": { const b = bytes(v); return m => m.z < b; }
+    case "older_than": case "newer_than": { const g = v.match(/^(\d+)([dmy])$/i); if (!g) return () => true; const ms = +g[1] * ({ d: 1, m: 30, y: 365 })[g[2].toLowerCase()] * DEMO_DAY; return op === "older_than" ? m => m.t < Date.now() - ms : m => m.t > Date.now() - ms; }
+    case "after": { const x = ts(v); return m => m.t >= x; }
+    case "before": { const x = ts(v); return m => m.t < x; }
+    case "from": return m => m.fromEmail.includes(lv) || m.from.toLowerCase().includes(lv);
+    case "to": return m => m.to.toLowerCase().includes(lv);
+    case "subject": return m => m.subject.toLowerCase().includes(lv);
+    default: { const w = t.toLowerCase(); return m => (m.from + " " + m.subject).toLowerCase().includes(w); }
+  }
+}
+function demoPred(q, all) {
+  const key = q + "|" + (all ? 1 : 0), c = demoQc.get(key); if (c) return c;
+  const T = []; let i = 0;
+  while (i < q.length) {
+    const ch = q[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    if (ch === "(" || ch === ")") { T.push(ch); i++; continue; }
+    if (ch === "-" && q[i + 1] === "(") { T.push("-("); i += 2; continue; }
+    let j = i; while (j < q.length && !/[\s()]/.test(q[j])) j++;
+    T.push(q.slice(i, j)); i = j;
+  }
+  let pos = 0;
+  const parseOr = () => { let a = parseAnd(); while (T[pos] === "OR") { pos++; const b = parseAnd(), x = a; a = m => x(m) || b(m); } return a; };
+  const parseAnd = () => { const fs = []; while (pos < T.length && T[pos] !== ")" && T[pos] !== "OR") fs.push(parseUnary()); return fs.length ? m => fs.every(f => f(m)) : () => true; };
+  const parseUnary = () => {
+    const t = T[pos++];
+    if (t === "(" || t === "-(") { const f = parseOr(); if (T[pos] === ")") pos++; return t === "(" ? f : m => !f(m); }
+    if (t.length > 1 && t[0] === "-") { const f = demoTerm(t.slice(1)); return m => !f(m); }
+    return demoTerm(t);
+  };
+  const base = parseOr(), incl = all || /(?:^|[\s(])in:(?:anywhere|trash|spam)\b/i.test(q);
+  const f = incl ? base : m => !m.labels.includes("TRASH") && !m.labels.includes("SPAM") && base(m);
+  if (demoQc.size > 200) demoQc.clear(); demoQc.set(key, f); return f;
+}
+async function demoApi(path, opt = {}) { // imite les appels Gmail utilisés : profile, labels, labels/ID, messages (liste), messages/ID, messages/batchModify
+  if ((demoTick = (demoTick + 1) % 150) === 0) await new Promise(r => setTimeout(r, 0)); // laisse le navigateur redessiner la progression
+  const qi = path.indexOf("?"), p = qi < 0 ? path : path.slice(0, qi), P = new URLSearchParams(qi < 0 ? "" : path.slice(qi + 1)), method = (opt.method || "GET").toUpperCase();
+  const err = (st, t) => { const e = new Error(t); e.status = st; return e; };
+  if (p === "profile") return { emailAddress: DEMO_ACCT, messagesTotal: demoMsgs.length, threadsTotal: demoMsgs.length, historyId: "1" };
+  if (p === "labels") return { labels: [...DEMO_SYS.map(id => ({ id, name: id, type: "system" })), ...[...demoLabels].map(([name, id]) => ({ id, name, type: "user" }))] };
+  if (p.startsWith("labels/")) {
+    const id = decodeURIComponent(p.slice(7)), user = [...demoLabels].find(([, i]) => i === id);
+    if (!user && !DEMO_SYS.includes(id)) throw err(404, "Requested entity was not found.");
+    let n = 0, u = 0; demoMsgs.forEach(m => { if (m.labels.includes(id)) { n++; if (m.labels.includes("UNREAD")) u++; } });
+    return { id, name: user ? user[0] : id, type: user ? "user" : "system", messagesTotal: n, messagesUnread: u, threadsTotal: n, threadsUnread: u };
+  }
+  if (p === "messages/batchModify" && method === "POST") {
+    const b = JSON.parse(opt.body || "{}"), add = b.addLabelIds || [], rem = b.removeLabelIds || [];
+    (b.ids || []).forEach(id => { const m = demoById.get(id); if (!m) return; const s = new Set(m.labels); rem.forEach(l => s.delete(l)); add.forEach(l => s.add(l)); m.labels = [...s]; demoMods[id] = m.labels.slice(); });
+    demoVer++; demoLast = null; demoSaveSoon(); return null;
+  }
+  if (p === "messages") {
+    const q = P.get("q") || "", all = P.get("includeSpamTrash") === "true", max = Math.min(500, +P.get("maxResults") || 100), off = +(P.get("pageToken") || 0) || 0, key = q + "|" + all + "|" + demoVer;
+    if (!demoLast || demoLast.key !== key) { const f = demoPred(q, all); demoLast = { key, ids: demoMsgs.filter(f).map(m => m.id) }; }
+    const ids = demoLast.ids, out = { resultSizeEstimate: ids.length }, slice = ids.slice(off, off + max);
+    if (slice.length) out.messages = slice.map(id => ({ id, threadId: id }));
+    if (off + max < ids.length) out.nextPageToken = String(off + max);
+    return out;
+  }
+  if (p.startsWith("messages/")) {
+    const id = decodeURIComponent(p.slice(9)), m = demoById.get(id);
+    if (!m) throw err(404, "Requested entity was not found.");
+    const f = P.get("format") || "full", out = { id, threadId: id, labelIds: m.labels.slice(), sizeEstimate: m.z, internalDate: String(m.t), snippet: "" };
+    if (f === "metadata" || f === "full") {
+      const want = P.getAll("metadataHeaders").map(x => x.toLowerCase()), H = [["From", m.from], ["To", m.to], ["Subject", m.subject], ["Date", new Date(m.t).toUTCString()]];
+      if (m.unsub) { H.push(["List-Unsubscribe", "<" + m.unsub + ">"]); if (m.oneClick) H.push(["List-Unsubscribe-Post", "List-Unsubscribe=One-Click"]); }
+      out.payload = { headers: H.filter(([n]) => !want.length || want.includes(n.toLowerCase())).map(([name, value]) => ({ name, value })) };
+    }
+    return out;
+  }
+  throw err(404, "Démo : requête non gérée (" + p + ").");
+}
+
+const DEMO_PROMPT = "Tu es un générateur de données factices pour la démonstration d’une application web appelée « Ménage Gmail ». Cet outil analyse une boîte Gmail expéditeur par expéditeur : nombre de mails, taille occupée, part de mails non lus, favoris, onglet Gmail (Promotions, Réseaux sociaux…), lien de désinscription, etc.\n\nTA MISSION\nProduire UN SEUL document JSON décrivant des expéditeurs entièrement fictifs. L’application transformera chaque expéditeur en autant de faux mails que tu l’indiques : les identifiants, les dates, les tailles et le statut lu / non lu de chaque mail sont tirés au hasard à partir de tes indications.\n\nDEMANDE SPÉCIFIQUE (à compléter avant d’envoyer cette requête)\n>>> Décris ici ce que tu veux ajouter. Exemples : « 25 expéditeurs pour quelqu’un qui voyage beaucoup : newsletters de voyage, compagnies aériennes, hôtels, quelques gros mails avec pièces jointes » ; « 15 expéditeurs d’un jeune actif : banque, énergie, réseaux sociaux, plateformes de streaming, famille et amis ». <<<\n\nFORMAT DE SORTIE (STRICT)\n- Réponds uniquement avec le JSON : aucun texte avant ou après, aucune balise ``` .\n- JSON valide : guillemets doubles, aucun commentaire, aucune virgule finale, nombres écrits comme des nombres (pas entre guillemets).\n- Structure exacte : {\"format\":\"menage-gmail-demo\",\"version\":1,\"senders\":[ {…}, {…} ]}\n\nCHAMPS D’UN EXPÉDITEUR (tous facultatifs sauf \"email\" ; valeur par défaut entre parenthèses)\n- \"email\" (texte, OBLIGATOIRE) : adresse unique en minuscules, jamais en double dans la liste.\n- \"name\" (texte) : nom affiché dans les mails (par défaut : l’adresse).\n- \"category\" : \"primary\" (par défaut) | \"promotions\" | \"social\" | \"updates\" | \"forums\" → onglet Gmail dans lequel tombent ses mails.\n- \"count\" (entier, 0) : nombre de mails dans la boîte de réception.\n- \"archived\" (entier, 0) : mails archivés (présents dans « Tous les messages », mais pas dans la réception).\n- \"trash\" (entier, 0) : mails dans la corbeille. \"spam\" (entier, 0) : mails dans le spam.\n- \"sentTo\" (entier, 0) : mails ENVOYÉS par l’utilisateur à cette adresse (active l’indicateur « vous lui avez déjà écrit »). À renseigner pour les proches, les collègues, les services avec lesquels il a échangé.\n- \"unreadPct\" (0 à 100, 0) : pourcentage de mails non lus.\n- \"starred\" (entier, 0) : nombre de mails suivis d’une étoile (favoris).\n- \"important\" (entier, 0) : nombre de mails marqués « importants ».\n- \"attachmentPct\" (0 à 100, 0) : pourcentage de mails avec pièce jointe.\n- \"avgSizeKB\" (nombre, 40) : taille moyenne d’un mail en Ko, pièces jointes comprises. Repères : notification 5–30 ; newsletter 30–150 ; newsletter riche en images 150–400 ; mail avec PDF ou photos 500–8 000.\n- \"first\" et \"last\" : date du plus ancien et du plus récent mail, au format \"AAAA-MM-JJ\" ou en nombre entier de jours avant aujourd’hui (par exemple 3 pour « il y a 3 jours »). Par défaut : de « il y a 3 ans » à « hier ».\n- \"subjects\" (liste de 3 à 8 textes) : sujets types des mails de cet expéditeur.\n- \"unsubscribe\" (texte) : lien de désinscription \"https://…\" ou \"mailto:…\", typique des newsletters et promotions ; \"\" sinon.\n- \"oneClick\" (vrai/faux) : désinscription « en un clic » (réservé aux liens https).\n- \"labels\" (liste de textes) : libellés personnels Gmail appliqués à tous les mails de l’expéditeur (par exemple \"Factures\", \"Voyages\"). À utiliser avec modération : 0 à 3 libellés différents dans tout le fichier.\n\nRÈGLES DE RÉALISME\n- Varie fortement les volumes : certains expéditeurs n’ont que 3 à 20 mails, d’autres plusieurs centaines, quelques-uns plus de 1 000. Évite les nombres ronds.\n- Les newsletters et promotions ont en général beaucoup de mails, 70 à 99 % de non lus, aucun favori et un lien de désinscription. Les proches ont peu de mails, presque tous lus, des favoris de temps en temps, et \"sentTo\" > 0.\n- Prévois quelques expéditeurs « lourds » (avgSizeKB élevé, attachmentPct élevé), quelques expéditeurs anciens (\"first\" à 8 ans ou plus) et quelques expéditeurs devenus silencieux (\"last\" de plusieurs années).\n- Mélange les catégories : au moins la moitié des expéditeurs en \"promotions\", \"updates\", \"social\" ou \"forums\", le reste en \"primary\".\n- Cohérence : \"starred\" et \"important\" ne dépassent pas \"count\" + \"archived\" ; \"first\" est antérieur à \"last\".\n- Limite : 40 expéditeurs au plus et 30 000 mails au total (somme de count + archived + trash + spam + sentTo) par réponse.\n\nRÈGLES DE SÉCURITÉ ET DE CONFIDENTIALITÉ\n- Tout est fictif : noms de marques inventés, aucune vraie personne, aucune vraie adresse, aucune vraie entreprise.\n- Adresses sur des domaines réservés ou inventés : example.com, example.org, example.net, ou des domaines se terminant par .example, .test ou .invalid.\n- Aucune donnée personnelle réelle (téléphone, adresse postale, numéro de compte) et aucun contenu choquant dans les noms ou les sujets.\n\nEXEMPLE DE FORME (ne pas recopier : invente tes propres expéditeurs)\n{\"format\":\"menage-gmail-demo\",\"version\":1,\"senders\":[\n {\"email\":\"newsletter@lettre-du-matin.example\",\"name\":\"La Lettre du Matin\",\"category\":\"updates\",\"count\":812,\"archived\":40,\"unreadPct\":93,\"avgSizeKB\":95,\"first\":\"2018-02-14\",\"last\":1,\"subjects\":[\"Les 5 infos du jour\",\"Ce qu’il faut retenir cette semaine\",\"Édition spéciale\"],\"unsubscribe\":\"https://lettre-du-matin.example/desinscription\",\"oneClick\":true},\n {\"email\":\"claire.dupont@famille.example\",\"name\":\"Claire Dupont\",\"category\":\"primary\",\"count\":64,\"archived\":210,\"sentTo\":180,\"unreadPct\":2,\"starred\":9,\"attachmentPct\":35,\"avgSizeKB\":1400,\"first\":\"2012-06-01\",\"last\":4,\"subjects\":[\"Photos du week-end\",\"Re: dimanche ?\",\"Anniversaire de papa\"],\"labels\":[\"Famille\"]}\n]}";
+// --- Données d’origine : demo/init.json (dépôt public) + ajouts faits dans ce navigateur et pas encore publiés ---
+async function demoLoadInit() {
+  let stat = [], note = "";
+  try {
+    const r = await fetch(new URL("demo/init.json", location.href).href + "?t=" + Date.now(), { cache: "no-store" });
+    if (r.status === 404) note = "Le fichier demo/init.json est absent du dépôt : la démo ne contient que les données ajoutées dans ce navigateur.";
+    else if (!r.ok) throw new Error("erreur HTTP " + r.status);
+    else { const t = (await r.text()).trim(); if (t) { const v = demoValidate(JSON.parse(t)); stat = v.senders; if (v.errors.length) note = "demo/init.json : " + v.errors.length + " entrée(s) ignorée(s)."; } }
+  } catch (e) { note = "Lecture de demo/init.json impossible (" + e.message + ")" + (location.protocol === "file:" ? " : ouvrez la page via https ou un serveur local, pas en file://." : "."); }
+  const st = new Map(stat.map(s => [s.email, JSON.stringify(s)]));
+  const pend = (demoStore.get("pending") || []).map(x => demoNormSender(x, [], 0)).filter(s => s && st.get(s.email) !== JSON.stringify(s)); // un ajout déjà publié n’a plus besoin d’être gardé ici
+  if (demoStore.get("pending")) demoStore.set("pending", pend);
+  const merged = new Map(stat.map(s => [s.email, s])); pend.forEach(s => merged.set(s.email, s));
+  return { senders: [...merged.values()], note };
+}
+function demoInfoLine() { $("#demoInfo").textContent = fmt(demoInit.length) + " expéditeur(s) dans les données d’origine · " + fmt(demoMsgs.length) + " mails dans la boîte de démo."; }
+function demoBoot() { // même enchaînement qu’après une vraie connexion
+  DEMO_ON = true; token = "demo"; acct = DEMO_ACCT; setAcctBar(DEMO_ACCT); loadAccountData();
+  const b = $("#acctBar"); b.textContent = "🧪 MODE DÉMO : données factices, aucun vrai compte Gmail n’est utilisé"; b.style.setProperty("--acc", "#7b1fa2");
+  document.title = "Démo — Ménage Gmail v" + VERSION;
+  $("#setup").hidden = true; $("#app").hidden = false; $("#connect").hidden = true; $("#tools").hidden = false; $("#demoBar").hidden = false; $("#reset").hidden = true;
+  const g = $("#ghDet") && $("#ghDet").closest(".card"); if (g) g.hidden = true; // pas de journal GitHub privé en démo
+  demoInfoLine(); buildPresets(); loadStats(); restoreScan(); loadScopeLabels();
+}
+async function demoStart() {
+  DEMO_ON = true; msg("Chargement de la démonstration…");
+  const init = await demoLoadInit(); demoInit = init.senders; demoMods = demoStore.get("mods") || {};
+  demoBuild(demoInit); demoBoot();
+  msg(!demoMsgs.length ? "La démo est vide pour l’instant" + (init.note ? " (" + init.note + ")" : "") + " : utilisez « Ajouter de nouvelles données de démo »." : init.note, init.note ? 1 : 0);
+}
+async function demoReset() {
+  if (running) return msg("Une analyse est en cours : attendez sa fin ou arrêtez-la avant de restaurer la démo.", 1);
+  if (!confirm("Restaurer l’environnement de démo ?\n\nLes mails mis à la corbeille, les analyses, le journal et les courbes de la démo seront effacés, et la boîte reviendra aux données de démo d’origine.")) return;
+  msg("Restauration de la démo…");
+  const init = await demoLoadInit(); demoInit = init.senders; demoMods = {}; demoStore.del("mods");
+  Object.keys(localStorage).filter(k => k.startsWith("gmailMenage.") && k.endsWith("|" + DEMO_ACCT)).forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  demoBuild(demoInit); demoBoot();
+  msg("✅ Démo restaurée : " + fmt(demoInit.length) + " expéditeur(s), " + fmt(demoMsgs.length) + " mails." + (init.note ? " " + init.note : ""), init.note ? 1 : 0);
+}
+$("#demoReset").onclick = demoReset;
+$("#demoQuit").onclick = () => { try { history.replaceState(null, "", location.pathname); } catch (e) {} location.reload(); };
+$("#demoGo").onclick = demoStart; $("#demoGo2").onclick = demoStart;
+document.addEventListener("click", e => { // en démo, aucun lien ne doit ouvrir le vrai Gmail
+  if (!DEMO_ON) return; const a = e.target.closest && e.target.closest("a[href]");
+  if (a && /mail\.google\.com/i.test(a.href)) { e.preventDefault(); msg("🧪 Démo : l’ouverture de Gmail est désactivée (données factices)."); }
+}, true);
+
+// --- Ajout de nouvelles données de démo (JSON produit par une IA) ---
+function demoMerge(list) { // ajoute ou remplace des expéditeurs dans la boîte de démo en cours, sans toucher au reste
+  const emails = new Set(list.map(s => s.email)), kept = [];
+  demoMsgs.forEach(m => { if (emails.has(m.src)) delete demoMods[m.id]; else kept.push(m); });
+  list.forEach(s => { for (const m of demoExpand(s)) kept.push(m); });
+  demoMsgs = kept; demoIndex();
+  const mi = new Map(demoInit.map(s => [s.email, s])); list.forEach(s => mi.set(s.email, s)); demoInit = [...mi.values()];
+  demoSaveSoon(); demoInfoLine();
+}
+const demoGuessRepo = () => { const h = location.hostname, seg = location.pathname.split("/").filter(Boolean)[0]; if (!/\.github\.io$/i.test(h)) return ""; const o = h.split(".")[0]; return o + "/" + (seg && !/\.html?$/i.test(seg) ? seg : o + ".github.io"); };
+function demoParseInput() {
+  let t = $("#demoJson").value.trim(); const chk = $("#demoCheck");
+  if (!t) { chk.textContent = ""; return null; }
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+  try {
+    const v = demoValidate(JSON.parse(t)), n = v.senders.reduce((a, s) => a + demoTotalOf(s), 0);
+    chk.innerHTML = (v.senders.length ? "✅ " + fmt(v.senders.length) + " expéditeur(s) valide(s), " + fmt(n) + " mails au total." : "❌ Aucun expéditeur valide.") + (v.errors.length ? "<br>⚠️ " + v.errors.length + " entrée(s) ignorée(s) : " + esc(v.errors.slice(0, 5).join(" · ")) : "");
+    return v;
+  } catch (e) { chk.textContent = "❌ JSON illisible : " + e.message; return null; }
+}
+async function demoPushGithub(list) { // fusionne les nouveaux expéditeurs dans demo/init.json du dépôt public (le crée s’il n’existe pas)
+  const repo = $("#demoRepo").value.trim(), tok = $("#demoTok").value.trim() || (demoStore.get("gh") || {}).token || "";
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) throw new Error("Dépôt invalide : format attendu pseudo/nom-du-depot.");
+  if (!tok) throw new Error("Collez un jeton GitHub (permission « Contents : Read and write » sur ce dépôt).");
+  const H = { Authorization: "Bearer " + tok, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, url = "https://api.github.com/repos/" + repo + "/contents/demo/init.json";
+  let sha, cur = [];
+  const r = await fetch(url, { headers: H, cache: "no-store" });
+  if (r.ok) {
+    const j = await r.json(); sha = j.sha;
+    const txt = new TextDecoder().decode(Uint8Array.from(atob((j.content || "").replace(/\n/g, "")), ch => ch.charCodeAt(0))).trim();
+    if (txt) { try { cur = demoValidate(JSON.parse(txt)).senders; } catch (e) { throw new Error("demo/init.json existe mais est illisible : rien n’a été écrasé."); } }
+  } else if (r.status !== 404) throw new Error(r.status === 401 ? "jeton refusé" : r.status === 403 ? "accès refusé (permission « Contents : Read and write » sur ce dépôt ?)" : "erreur GitHub " + r.status);
+  const m = new Map(cur.map(s => [s.email, s])); list.forEach(s => m.set(s.email, s));
+  const body = JSON.stringify({ format: DEMO_FORMAT, version: 1, senders: [...m.values()] }, null, 1);
+  const w = await fetch(url, { method: "PUT", headers: H, body: JSON.stringify({ message: "Données de démo : +" + list.length + " expéditeur(s)", content: btoa(unescape(encodeURIComponent(body))), ...(sha ? { sha } : {}) }) });
+  if (!w.ok) throw new Error((await w.json().catch(() => ({}))).message || "erreur GitHub " + w.status);
+  if ($("#demoRemember").checked) demoStore.set("gh", { repo, token: tok }); else demoStore.del("gh");
+}
+async function demoAdd(toGh) {
+  const v = demoParseInput(); if (!v || !v.senders.length) return msg("Rien à ajouter : collez d’abord un JSON valide.", 1);
+  const bs = [$("#demoAddGh"), $("#demoAddLocal")]; bs.forEach(b => b.disabled = true);
+  const pA = Prog.start("Ajout de données de démo", 1);
+  try {
+    if (toGh) await demoPushGithub(v.senders);
+    const pend = new Map((demoStore.get("pending") || []).map(s => [s.email, s])); v.senders.forEach(s => pend.set(s.email, s)); demoStore.set("pending", [...pend.values()]); // gardé ici jusqu’à ce que la version publiée le contienne
+    demoMerge(v.senders); loadStats(); loadScopeLabels();
+    $("#demoDlg").close(); $("#demoJson").value = ""; $("#demoCheck").textContent = "";
+    msg("✅ " + fmt(v.senders.length) + " expéditeur(s) ajouté(s) à la démo" + (toGh ? " et enregistré(s) dans demo/init.json (visible pour tous une fois la page GitHub republiée, en général sous quelques minutes)." : " (dans ce navigateur seulement : ils survivent à « Restaurer », mais ne sont pas dans le dépôt).") + " Refaites une analyse pour les voir dans la liste.");
+  } catch (e) { $("#demoCheck").innerHTML = "❌ " + esc(e.message); msg("Ajout impossible : " + e.message, 1); }
+  finally { pA.done(); bs.forEach(b => b.disabled = false); }
+}
+$("#demoAdd").onclick = () => {
+  const c = demoStore.get("gh") || {};
+  $("#demoRepo").value = c.repo || demoGuessRepo(); $("#demoTok").value = ""; $("#demoTok").placeholder = c.token ? "Jeton enregistré (laisser vide pour le conserver)" : "github_pat_…"; $("#demoRemember").checked = !!c.token || !demoStore.get("gh");
+  $("#demoPromptTxt").value = DEMO_PROMPT; $("#demoCheck").textContent = ""; $("#demoDlg").showModal();
+};
+$("#demoCopyPrompt").onclick = async () => { try { await navigator.clipboard.writeText(DEMO_PROMPT); msg("Requête copiée : collez-la dans l’IA de votre choix, après avoir complété la demande spécifique."); } catch (e) { $("#demoPromptTxt").hidden = false; $("#demoPromptTxt").select(); msg("Copie automatique impossible : le texte est affiché, copiez-le à la main.", 1); } };
+$("#demoShowPrompt").onclick = () => { const t = $("#demoPromptTxt"); t.hidden = !t.hidden; };
+$("#demoJson").oninput = demoParseInput;
+$("#demoFile").onchange = async e => { const f = e.target.files[0]; if (!f) return; $("#demoJson").value = await f.text(); e.target.value = ""; demoParseInput(); };
+$("#demoAddGh").onclick = () => demoAdd(true);
+$("#demoAddLocal").onclick = () => demoAdd(false);
+$("#demoDlgClose").onclick = () => $("#demoDlg").close();
+
 render();
+if (/[?&]demo(?:[=&]|$)/.test(location.search) || location.hash === "#demo") demoStart(); // adresse ...?demo : démarrage direct en démo
 </script>
 </body>
 </html>
