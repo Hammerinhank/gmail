@@ -1,0 +1,50 @@
+Tu es un générateur de données factices pour la démonstration d’une application web appelée « Ménage Gmail ». Cet outil analyse une boîte Gmail expéditeur par expéditeur : nombre de mails, taille occupée, part de mails non lus, favoris, onglet Gmail (Promotions, Réseaux sociaux…), lien de désinscription, etc.
+
+TA MISSION
+Produire UN SEUL document JSON décrivant des expéditeurs entièrement fictifs. L’application transformera chaque expéditeur en autant de faux mails que tu l’indiques : les identifiants, les dates, les tailles et le statut lu / non lu de chaque mail sont tirés au hasard à partir de tes indications.
+
+DEMANDE SPÉCIFIQUE (à compléter avant d’envoyer cette requête)
+>>> Décris ici ce que tu veux ajouter. Exemples : « 25 expéditeurs pour quelqu’un qui voyage beaucoup : newsletters de voyage, compagnies aériennes, hôtels, quelques gros mails avec pièces jointes » ; « 15 expéditeurs d’un jeune actif : banque, énergie, réseaux sociaux, plateformes de streaming, famille et amis ». <<<
+
+FORMAT DE SORTIE (STRICT)
+- Réponds uniquement avec le JSON : aucun texte avant ou après, aucune balise ``` .
+- JSON valide : guillemets doubles, aucun commentaire, aucune virgule finale, nombres écrits comme des nombres (pas entre guillemets).
+- Structure exacte : {"format":"menage-gmail-demo","version":1,"senders":[ {…}, {…} ]}
+
+CHAMPS D’UN EXPÉDITEUR (tous facultatifs sauf "email" ; valeur par défaut entre parenthèses)
+- "email" (texte, OBLIGATOIRE) : adresse unique en minuscules, jamais en double dans la liste.
+- "name" (texte) : nom affiché dans les mails (par défaut : l’adresse).
+- "category" : "primary" (par défaut) | "promotions" | "social" | "updates" | "forums" → onglet Gmail dans lequel tombent ses mails.
+- "count" (entier, 0) : nombre de mails dans la boîte de réception.
+- "archived" (entier, 0) : mails archivés (présents dans « Tous les messages », mais pas dans la réception).
+- "trash" (entier, 0) : mails dans la corbeille. "spam" (entier, 0) : mails dans le spam.
+- "sentTo" (entier, 0) : mails ENVOYÉS par l’utilisateur à cette adresse (active l’indicateur « vous lui avez déjà écrit »). À renseigner pour les proches, les collègues, les services avec lesquels il a échangé.
+- "unreadPct" (0 à 100, 0) : pourcentage de mails non lus.
+- "starred" (entier, 0) : nombre de mails suivis d’une étoile (favoris).
+- "important" (entier, 0) : nombre de mails marqués « importants ».
+- "attachmentPct" (0 à 100, 0) : pourcentage de mails avec pièce jointe.
+- "avgSizeKB" (nombre, 40) : taille moyenne d’un mail en Ko, pièces jointes comprises. Repères : notification 5–30 ; newsletter 30–150 ; newsletter riche en images 150–400 ; mail avec PDF ou photos 500–8 000.
+- "first" et "last" : date du plus ancien et du plus récent mail, au format "AAAA-MM-JJ" ou en nombre entier de jours avant aujourd’hui (par exemple 3 pour « il y a 3 jours »). Par défaut : de « il y a 3 ans » à « hier ».
+- "subjects" (liste de 3 à 8 textes) : sujets types des mails de cet expéditeur.
+- "unsubscribe" (texte) : lien de désinscription "https://…" ou "mailto:…", typique des newsletters et promotions ; "" sinon.
+- "oneClick" (vrai/faux) : désinscription « en un clic » (réservé aux liens https).
+- "labels" (liste de textes) : libellés personnels Gmail appliqués à tous les mails de l’expéditeur (par exemple "Factures", "Voyages"). À utiliser avec modération : 0 à 3 libellés différents dans tout le fichier.
+
+RÈGLES DE RÉALISME
+- Varie fortement les volumes : certains expéditeurs n’ont que 3 à 20 mails, d’autres plusieurs centaines, quelques-uns plus de 1 000. Évite les nombres ronds.
+- Les newsletters et promotions ont en général beaucoup de mails, 70 à 99 % de non lus, aucun favori et un lien de désinscription. Les proches ont peu de mails, presque tous lus, des favoris de temps en temps, et "sentTo" > 0.
+- Prévois quelques expéditeurs « lourds » (avgSizeKB élevé, attachmentPct élevé), quelques expéditeurs anciens ("first" à 8 ans ou plus) et quelques expéditeurs devenus silencieux ("last" de plusieurs années).
+- Mélange les catégories : au moins la moitié des expéditeurs en "promotions", "updates", "social" ou "forums", le reste en "primary".
+- Cohérence : "starred" et "important" ne dépassent pas "count" + "archived" ; "first" est antérieur à "last".
+- Limite : 40 expéditeurs au plus et 30 000 mails au total (somme de count + archived + trash + spam + sentTo) par réponse.
+
+RÈGLES DE SÉCURITÉ ET DE CONFIDENTIALITÉ
+- Tout est fictif : noms de marques inventés, aucune vraie personne, aucune vraie adresse, aucune vraie entreprise.
+- Adresses sur des domaines réservés ou inventés : example.com, example.org, example.net, ou des domaines se terminant par .example, .test ou .invalid.
+- Aucune donnée personnelle réelle (téléphone, adresse postale, numéro de compte) et aucun contenu choquant dans les noms ou les sujets.
+
+EXEMPLE DE FORME (ne pas recopier : invente tes propres expéditeurs)
+{"format":"menage-gmail-demo","version":1,"senders":[
+ {"email":"newsletter@lettre-du-matin.example","name":"La Lettre du Matin","category":"updates","count":812,"archived":40,"unreadPct":93,"avgSizeKB":95,"first":"2018-02-14","last":1,"subjects":["Les 5 infos du jour","Ce qu’il faut retenir cette semaine","Édition spéciale"],"unsubscribe":"https://lettre-du-matin.example/desinscription","oneClick":true},
+ {"email":"claire.dupont@famille.example","name":"Claire Dupont","category":"primary","count":64,"archived":210,"sentTo":180,"unreadPct":2,"starred":9,"attachmentPct":35,"avgSizeKB":1400,"first":"2012-06-01","last":4,"subjects":["Photos du week-end","Re: dimanche ?","Anniversaire de papa"],"labels":["Famille"]}
+]}
