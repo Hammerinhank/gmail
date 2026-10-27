@@ -335,7 +335,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.76"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.77"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -414,6 +414,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.74", "Reproduction de l’historique : réessai automatique (jusqu’à 6 fois, attentes croissantes) quand GitHub répond par une erreur serveur 5xx (« erreur 500 », 502, 503…) ou que la connexion échoue momentanément, au lieu d’abandonner dès la première erreur."],
   ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."]
   ["1.76", "Garde-fou multi-comptes : sélecteur de compte Google forcé à chaque connexion, champ « Compte à traiter » (connexion refusée si Google connecte une autre adresse), bandeau permanent coloré avec l’adresse connectée, adresse rappelée dans la confirmation de mise à la corbeille. Suppression du bouton provisoire « Reproduire l’historique » et de son code, devenus inutiles."],
+  ["1.77", "Suppression du code de reprise des données d’avant la v1.75 (anciennes clés du navigateur et ancien journal GitHub à la racine du dépôt), devenu inutile."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -460,18 +461,6 @@ function loadGsi() {
   });
 }
 // ===== Données rangées par compte Gmail =====
-const LEGACY_KEYS = [["gmailMenage.log", "log"], ["gmailMenage.dist", "dist"], ["gmailMenage.presetSizes", "presetSizes"], ["gmailMenage.scans", "scans"], ["gmailMenage.scan", "scan"], ["gmailMenage.ghDirty", "ghDirty"]];
-let legacyAsked = false;
-function claimLegacy() { // données enregistrées avant la v1.75 (non rattachées à un compte) : rattachement au compte connecté, après confirmation
-  try {
-    if (localStorage.getItem("gmailMenage.legacyClaimed") || legacyAsked) return;
-    const has = LEGACY_KEYS.filter(([o]) => localStorage.getItem(o) != null);
-    if (!has.length) return; legacyAsked = true;
-    if (!confirm("Des données enregistrées avant la v1.75 (analyses, journal, tailles…) existent dans ce navigateur. Appartiennent-elles au compte " + acct + " ?\n\nOK : elles sont rattachées à ce compte, et à lui seul.\nAnnuler : elles restent à part, intactes ; la question sera reposée à la prochaine connexion.")) return;
-    has.forEach(([o, n]) => { if (localStorage.getItem(AK(n)) == null) { localStorage.setItem(AK(n), localStorage.getItem(o)); localStorage.removeItem(o); } });
-    localStorage.setItem("gmailMenage.legacyClaimed", acct);
-  } catch (e) {}
-}
 function loadAccountData() { // (re)charge les données du compte connecté et vide tout ce qui appartenait au précédent
   const L = rdJ(AK("log")), D = rdJ(AK("dist"));
   logData = L ? { snaps: L.snaps || [], ops: L.ops || [] } : { snaps: [], ops: [] };
@@ -512,7 +501,7 @@ $("#go").onclick = async () => {
           clearTimeout(ghTimer); ghTimer = null;
           try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) await ghSync(true); } catch (e) {}
         }
-        acct = email; setAcctBar(email); claimLegacy(); loadAccountData();
+        acct = email; setAcctBar(email); loadAccountData();
         $("#connect").hidden = true; $("#tools").hidden = false; buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ghInit(); ghSync(false).then(() => { try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) ghSync(true); } catch (e) {} });
       },
       error_callback: e => msg("Connexion impossible : " + (e.type || "erreur"), 1)
@@ -607,7 +596,7 @@ function mergeLog(x) {
   logData.snaps = u(logData.snaps, x.snaps || [], e => e.t);
   logData.ops = u(logData.ops, x.ops || [], e => e.t + e.name);
 }
-let ghTimer = null, ghLegacyAns = null;
+let ghTimer = null;
 const GHDELAY = 10 * 60 * 1000;
 function ghSyncSoon() { // une seule écriture GitHub, 10 min après la dernière activité ; les données sont déjà dans le navigateur
   if (!ghCfg()) return;
@@ -621,7 +610,6 @@ async function ghSync(push, ui) {
     [dir + LOGFILE, mergeLog, () => logData, saveLog, true],
     [dir + DISTFILE, mergeDist, () => distData, saveDist, false]
   ];
-  let legacyMerged = false;
   const P = ui ? Prog.start("Synchronisation GitHub", files.length * (push ? 2 : 1)) : null; let k = 0; // barre affichée seulement quand on clique sur le bouton
   try {
     for (const [path, merge, data, save, main] of files) {
@@ -630,12 +618,6 @@ async function ghSync(push, ui) {
       if (r.ok) {
         const j = await r.json(); sha = j.sha; found = true;
         try { merge(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\n/g, "")), ch => ch.charCodeAt(0))))); } catch (e) {}
-      } else if (r.status === 404) { // fichier absent du dossier du compte : reprise éventuelle de l’ancien fichier à la racine du dépôt (avant la v1.75)
-        let lg = null; try { if (!localStorage.getItem("gmailMenage.ghLegacyDone")) { const lr = await fetch("https://api.github.com/repos/" + c.repo + "/contents/" + path.slice(dir.length), { headers: H }); if (lr.ok) lg = await lr.json(); } } catch (e) {}
-        if (lg) {
-          if (ghLegacyAns == null) ghLegacyAns = confirm("Le journal GitHub existant, à la racine de « " + c.repo + " » (avant la v1.75), appartient-il au compte " + acct + " ?\n\nOK : son contenu est repris et copié dans le dossier « " + acct + "/ » (l’ancien fichier n’est pas supprimé).\nAnnuler : il est ignoré pour ce compte.");
-          if (ghLegacyAns) { try { merge(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(lg.content.replace(/\n/g, "")), ch => ch.charCodeAt(0))))); legacyMerged = true; } catch (e) {} }
-        }
       } else if (r.status !== 404) throw new Error(r.status === 401 ? "jeton refusé" : r.status === 403 ? "accès refusé (permission « Contents : Read and write » ?)" : "erreur " + r.status);
       save();
       if (!push || (!found && !main && !data().points.length)) continue; // rien à créer pour le fichier de répartition tant qu'il n'a aucune mesure
@@ -644,7 +626,6 @@ async function ghSync(push, ui) {
       P && P.set(++k);
       if (!w.ok) throw new Error((await w.json().catch(() => ({}))).message || "erreur " + w.status);
     }
-    if (legacyMerged) { try { localStorage.setItem("gmailMenage.ghLegacyDone", acct); if (!push) localStorage.setItem(AK("ghDirty"), "1"); } catch (e) {} } // l’ancien journal racine est rattaché à ce compte : il sera envoyé dans son dossier
     if (!push) return ghStatus("Journal GitHub lu : " + c.repo);
     try { localStorage.removeItem(AK("ghDirty")); } catch (e) {}
     ghStatus("✅ Journal synchronisé avec " + c.repo + " (" + new Date().toLocaleTimeString("fr-FR") + ")");
