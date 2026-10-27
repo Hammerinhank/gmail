@@ -182,7 +182,7 @@ table.dist td.r{text-align:right}
     <h2>Connexion</h2>
     <p>Cliquez pour autoriser l’accès à votre boîte. Google affichera peut‑être « Application non validée » : c’est normal, c’est <i>votre</i> application → cliquez sur <b>Paramètres avancés</b> puis <b>Accéder à Menage Gmail</b>.</p>
     <label for="expAcct"><b>Compte à traiter</b></label>
-    <input type="email" id="expAcct" placeholder="adresse@gmail.com" autocomplete="off" spellcheck="false" style="margin:4px 0 8px">
+    <input type="email" id="expAcct" placeholder="adresse@gmail.com" autocomplete="off" spellcheck="false" style="margin:4px 0 8px;display:block;box-sizing:border-box;width:100%;max-width:36em">
     <p class="mut" style="margin:0 0 8px">Si Google connecte un autre compte que celui-ci, la connexion est refusée. Laissez vide à la première connexion : l’adresse connectée vous sera demandée puis mémorisée.</p>
     <button class="btn" id="go" type="button">Se connecter à Gmail</button>
   </div>
@@ -336,7 +336,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.78"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.79"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -417,6 +417,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.76", "Garde-fou multi-comptes : sélecteur de compte Google forcé à chaque connexion, champ « Compte à traiter » (connexion refusée si Google connecte une autre adresse), bandeau permanent coloré avec l’adresse connectée, adresse rappelée dans la confirmation de mise à la corbeille. Suppression du bouton provisoire « Reproduire l’historique » et de son code, devenus inutiles."],
   ["1.77", "Suppression du code de reprise des données d’avant la v1.75 (anciennes clés du navigateur et ancien journal GitHub à la racine du dépôt), devenu inutile."],
   ["1.78", "Liste des expéditeurs : nouveau bouton ↻ (entre Info et Scannés) qui relit uniquement les mails de cet expéditeur déjà enregistrés dans les analyses : retire ceux qui ne sont plus dans le périmètre (corbeille, suppression, archivage), relit non lus, favoris, onglets, taille et dates des autres, puis met à jour la ligne, la taille globale et le nombre de messages comptés de l’analyse. Si tous ses mails ont disparu, la ligne reste affichée à 0 jusqu’au prochain affichage de l’analyse."],
+  ["1.79", "Champ « Compte à traiter » élargi (pleine largeur disponible, jusqu’à environ 36 caractères) pour que l’adresse e-mail ne soit plus tronquée."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
