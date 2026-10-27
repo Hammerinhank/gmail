@@ -72,6 +72,8 @@ select{padding:7px;border-radius:8px;border:1px solid var(--bd);background:var(-
 .row:first-child{border-top:0}
 .who{min-width:0;flex:1 1 240px}.who b{display:block;overflow:hidden;text-overflow:ellipsis}
 .cnt{font-weight:700;min-width:48px;text-align:right}
+#acctBar{position:sticky;top:0;z-index:50;margin:0 0 12px;padding:10px 14px;border-radius:8px;background:var(--acc,var(--ac));color:#fff;font-weight:600;word-break:break-all}
+#acctBar[hidden]{display:none}
 #gtop{position:fixed;top:0;left:0;right:0;bottom:auto;width:auto;height:auto;max-height:60vh;overflow:auto;margin:0;padding:0;border:0;background:transparent;z-index:100;pointer-events:none}
 #gtop>*{pointer-events:auto}
 #gtop[hidden]{display:none}
@@ -168,6 +170,7 @@ table.dist td.r{text-align:right}
 
 <!-- ===== APPLICATION ===== -->
 <section id="app" hidden>
+  <div id="acctBar" hidden role="status"></div>
   <header>
     <h1>🧹 Ménage Gmail</h1>
     <button class="btn sec" id="reset" type="button">Réinitialiser les clés</button>
@@ -177,6 +180,9 @@ table.dist td.r{text-align:right}
   <div class="card" id="connect">
     <h2>Connexion</h2>
     <p>Cliquez pour autoriser l’accès à votre boîte. Google affichera peut‑être « Application non validée » : c’est normal, c’est <i>votre</i> application → cliquez sur <b>Paramètres avancés</b> puis <b>Accéder à Menage Gmail</b>.</p>
+    <label for="expAcct"><b>Compte à traiter</b></label>
+    <input type="email" id="expAcct" placeholder="adresse@gmail.com" autocomplete="off" spellcheck="false" style="margin:4px 0 8px">
+    <p class="mut" style="margin:0 0 8px">Si Google connecte un autre compte que celui-ci, la connexion est refusée. Laissez vide à la première connexion : l’adresse connectée vous sera demandée puis mémorisée.</p>
     <button class="btn" id="go" type="button">Se connecter à Gmail</button>
   </div>
 
@@ -449,7 +455,7 @@ $("#saveId").onclick = () => {
   if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) return msg("Cet ID client semble invalide : il doit se terminer par .apps.googleusercontent.com", 1);
   if (setId(v)) { msg(""); render(); }
 };
-$("#reset").onclick = () => { if (confirm("Effacer l’ID client enregistré et revenir au guide ?")) { setId(""); token = null; scanData = null; scans = []; try { Object.keys(localStorage).filter(k => k.startsWith("gmailMenage.scan")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem(GH); } catch (e) {} acct = ""; $("#tools").hidden = true; $("#connect").hidden = false; render(); } };
+$("#reset").onclick = () => { if (confirm("Effacer l’ID client enregistré et revenir au guide ?")) { setId(""); token = null; scanData = null; scans = []; try { Object.keys(localStorage).filter(k => k.startsWith("gmailMenage.scan")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem(GH); } catch (e) {} acct = ""; setAcctBar(""); $("#tools").hidden = true; $("#connect").hidden = false; render(); } };
 
 function loadGsi() {
   return new Promise((res, rej) => {
@@ -482,22 +488,38 @@ function loadAccountData() { // (re)charge les données du compte connecté et v
   wrCache.clear(); cntCache.clear(); totCache.clear(); myAddrP = null; scopeLabels = []; ovlSet = new Set();
   $("#senders").innerHTML = ""; setBanner(""); $("#sfilterInfo").textContent = "";
 }
+const EXPK = "gmailMenage.expected";
+const colorOf = e => { let h = 0; for (const c of e) h = (h * 31 + c.charCodeAt(0)) % 360; return "hsl(" + h + ",60%,36%)"; };
+function setAcctBar(email) {
+  const b = $("#acctBar"); if (!b) return;
+  if (!email) { b.hidden = true; b.textContent = ""; document.title = "Ménage Gmail"; return; }
+  b.style.setProperty("--acc", colorOf(email)); b.textContent = "Compte connecté : " + email; b.hidden = false; document.title = email + " — Ménage Gmail";
+}
+try { $("#expAcct").value = localStorage.getItem(EXPK) || ""; } catch (e) {}
 $("#go").onclick = async () => {
   try {
     await loadGsi();
+    const expected = $("#expAcct").value.trim().toLowerCase();
+    if (expected && !/^[^@\s]+@[^@\s]+$/.test(expected)) return msg("L’adresse du compte à traiter semble invalide.", 1);
     google.accounts.oauth2.initTokenClient({
       client_id: getId(),
       scope: "https://www.googleapis.com/auth/gmail.modify",
+      prompt: "select_account",
+      ...(expected ? { hint: expected } : {}),
       callback: async r => {
         if (r.error) return msg("Erreur de connexion : " + r.error + ". Vérifiez l’origine autorisée et l’utilisateur test (étapes 3 et 4).", 1);
         token = r.access_token; msg("");
         let email = ""; try { email = String((await api("profile")).emailAddress || "").toLowerCase(); } catch (e) { return msg("Connexion impossible : " + e.message, 1); }
         if (!email) return msg("Adresse du compte Gmail illisible : connexion interrompue.", 1);
+        const drop = () => { try { google.accounts.oauth2.revoke(token); } catch (e) {} token = null; setAcctBar(""); };
+        if (expected && email !== expected) { drop(); return msg("Mauvais compte : Google a connecté " + email + " au lieu de " + expected + ". Connexion annulée, aucun mail n’a été chargé. Réessayez en choisissant le bon compte.", 1); }
+        if (!expected && !confirm("Vous êtes connecté en tant que :\n\n" + email + "\n\nC’est bien le compte à traiter ?")) { drop(); return msg("Connexion annulée.", 1); }
+        try { localStorage.setItem(EXPK, email); $("#expAcct").value = email; } catch (e) {}
         if (acct && acct !== email) { // changement de compte : on envoie d’abord ce qui était en attente pour l’ancien compte
           clearTimeout(ghTimer); ghTimer = null;
           try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) await ghSync(true); } catch (e) {}
         }
-        acct = email; claimLegacy(); loadAccountData();
+        acct = email; setAcctBar(email); claimLegacy(); loadAccountData();
         $("#connect").hidden = true; $("#tools").hidden = false; buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ghInit(); ghSync(false).then(() => { try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) ghSync(true); } catch (e) {} });
       },
       error_callback: e => msg("Connexion impossible : " + (e.type || "erreur"), 1)
@@ -528,7 +550,7 @@ const Prog = (() => {
 })();
 async function api(path, opt = {}) {
   const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/" + path, { ...opt, headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
-  if (r.status === 401) { token = null; $("#tools").hidden = true; $("#connect").hidden = false; throw new Error("Session expirée : reconnectez‑vous."); }
+  if (r.status === 401) { token = null; setAcctBar(""); $("#tools").hidden = true; $("#connect").hidden = false; throw new Error("Session expirée : reconnectez‑vous."); }
   if (!r.ok) { const j = await r.json().catch(() => ({})); const er = new Error(j.error?.message || "Erreur " + r.status); er.status = r.status; throw er; }
   const t = await r.text(); return t ? JSON.parse(t) : null;
 }
@@ -550,7 +572,7 @@ async function trash(ids, onProg) {
 async function trashIds(ids, label, logName) {
   try {
     if (!ids.length) return msg("Aucun message à supprimer."), 0;
-    if (!confirm("Mettre " + fmt(ids.length) + " message(s) à la corbeille ?\n" + label + "\n\nIls resteront récupérables dans la corbeille Gmail pendant 30 jours ; l’espace de stockage n’est libéré qu’à leur suppression définitive (après 30 jours, ou si vous videz la corbeille).")) return msg(""), 0;
+    if (!confirm("Compte : " + acct + "\n\nMettre " + fmt(ids.length) + " message(s) à la corbeille ?\n" + label + "\n\nIls resteront récupérables dans la corbeille Gmail pendant 30 jours ; l’espace de stockage n’est libéré qu’à leur suppression définitive (après 30 jours, ou si vous videz la corbeille).")) return msg(""), 0;
     msg("Déplacement vers la corbeille…");
     const pT = Prog.start("Mise à la corbeille", ids.length);
     try { await trash(ids, n => pT.set(n)); } finally { pT.done(); }
