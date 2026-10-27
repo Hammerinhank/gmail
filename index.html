@@ -1,18 +1,1734 @@
 <!DOCTYPE html>
+<!--
+  ⚠️ RAPPEL OBLIGATOIRE : à CHAQUE modification de ce fichier (même minime),
+  1) incrémenter la constante VERSION dans le <script> (en bas de la page),
+  2) ajouter une entrée au tableau CHANGELOG, juste en dessous de VERSION
+     (c'est lui qui alimente la liste affichée par le bouton de version).
+-->
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gmail</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ménage Gmail</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background:#f5f5f7; color:#1d1d1f; text-align:center; padding:60px 20px; }
-  h1 { color:#0071e3; }
-  p { color:#86868b; }
+:root{--tint:#e3edff;--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#667085;--ac:#1a73e8;--bd:#e2e5ea;--warn:#fff4e5;--ok:#e8f5e9;--bad:#fdeaea;--dg:#d93025;--l1:#1a73e8;--l2:#e8710a}
+@media(prefers-color-scheme:dark){:root{--tint:#1c2a47;--bg:#14171c;--card:#1d222a;--tx:#e8eaed;--mut:#9aa3b0;--ac:#6ea8ff;--bd:#2d343f;--warn:#3a2f1c;--ok:#1d3322;--bad:#3a1f1f;--dg:#ff7b72;--l1:#6ea8ff;--l2:#ffa94d}}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--tx)}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.15rem;margin:0 0 .4em}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin:14px 0}
+.mut{color:var(--mut);font-size:.92rem}
+.btn{display:inline-block;background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-size:.95rem;cursor:pointer;text-decoration:none;margin:4px 6px 4px 0}
+.btn.sec{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+.btn.dg{background:var(--dg)}
+.btn.or{background:#e8710a}
+.btn.off{opacity:.45;cursor:not-allowed}
+.pbox{border:1px solid var(--ac);border-radius:10px;padding:10px 12px;margin:10px 0;background:var(--bg)}
+#scanInfo{font-size:.95rem;font-weight:500;color:var(--tx)}
+.row.srow{display:block}
+.srow .main{width:100%;display:flex;align-items:center;gap:10px}
+.srow .who{flex:1 1 0;min-width:0}
+.srow .who b,.srow .who span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .cnt{flex:0 0 52px;text-align:right}
+.srow .cnt.dual{flex:0 0 auto;min-width:104px;white-space:nowrap}
+.cnt.dual .on{color:var(--tx);font-weight:700}
+.cnt.dual .off{color:var(--mut);font-weight:400}
+.cnt.dual .sep{color:var(--mut);font-weight:400;margin:0 4px}
+.gl{display:inline-block;margin:0 16px 4px 0;cursor:pointer}
+.srow .who .bdg{white-space:normal;font-size:.85rem}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+#gprog{padding:8px 16px 10px;background:var(--tint);border-bottom:2px solid var(--ac);color:var(--tx);box-shadow:0 2px 10px rgba(0,0,0,.18)}
+#gprog[hidden]{display:none}
+.btn.ovl{outline:3px solid #fbbc04;outline-offset:1px;box-shadow:0 0 0 5px rgba(251,188,4,.35)}
+#gprog .gp-row{display:flex;justify-content:space-between;gap:12px;font-size:.92rem;margin-bottom:5px}
+#gprog progress{display:block;width:100%;height:10px}
+.srow .acts{flex:0 0 auto;flex-wrap:nowrap;gap:6px;justify-content:flex-end}
+.srow .unsl{display:flex;width:120px}
+.srow .unsl .btn{width:100%}
+.srow .acts .tip{display:flex}
+.srow .acts .btn{display:flex;align-items:center;justify-content:center;box-sizing:border-box;height:100%;margin:0;padding:6px 9px;font-size:.88rem;line-height:1.15;text-align:center;white-space:nowrap}
+.srow .infoln{margin-top:8px}
+@media(max-width:620px){.srow .main{flex-wrap:wrap}.srow .acts{flex-wrap:wrap}.srow .unsl:empty{display:none}}
+.acts{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.tip{position:relative;display:inline-block}
+.tip::after{content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 4px);width:max-content;max-width:290px;background:#ffe66d;color:#1a1a1a;border:1px solid #9a8200;border-radius:6px;padding:8px 11px;font-size:.9rem;line-height:1.4;font-weight:500;text-align:left;white-space:normal;box-shadow:0 3px 10px rgba(0,0,0,.35);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .15s,visibility 0s;z-index:30}
+.tip:hover::after{opacity:1;visibility:visible;transition-delay:.5s}
+.tip.nt::after{opacity:0!important;visibility:hidden!important;transition:none!important}
+.btn,button,.tip{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.row.sel{outline:2px solid var(--ac);outline-offset:-2px;border-radius:10px;padding:10px 12px;background:rgba(26,115,232,.08)}
+.banner{border:2px solid var(--ac);background:rgba(26,115,232,.08);border-radius:10px;padding:8px 12px;margin:8px 0;font-size:.95rem;line-height:1.5}
+.infoln{flex-basis:100%;font-size:.92rem;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:7px 11px}
+.btn:disabled{opacity:.5;cursor:wait}
+.step{display:flex;gap:14px}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--ac);color:#fff;display:grid;place-items:center;font-weight:700}
+.note{background:var(--warn);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:.93rem}
+.okb{background:var(--ok);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:.93rem}
+code{background:var(--bg);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-size:.9em;word-break:break-all}
+input[type=text],input[type=password]{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;font:inherit;background:var(--bg);color:var(--tx)}
+input[type=number]{padding:7px;border:1px solid var(--bd);border-radius:8px;font:inherit;background:var(--bg);color:var(--tx)}
+select{padding:7px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font:inherit}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--bd);flex-wrap:wrap}
+.row:first-child{border-top:0}
+.who{min-width:0;flex:1 1 240px}.who b{display:block;overflow:hidden;text-overflow:ellipsis}
+.cnt{font-weight:700;min-width:48px;text-align:right}
+#gtop{position:fixed;top:0;left:0;right:0;bottom:auto;width:auto;height:auto;max-height:60vh;overflow:auto;margin:0;padding:0;border:0;background:transparent;z-index:100;pointer-events:none}
+#gtop>*{pointer-events:auto}
+#gtop[hidden]{display:none}
+#msg{display:none;position:relative;margin:8px 12px;padding:10px 40px 10px 14px;border-radius:8px;background:var(--ok);border:2px solid #34a853;color:var(--tx);box-shadow:0 4px 14px rgba(0,0,0,.22);font-size:.95rem;line-height:1.4}
+#msg.err{background:var(--warn);color:var(--dg);border-color:var(--dg);font-weight:600}
+#msg.bad{background:var(--bad);color:var(--dg);border-color:var(--dg);font-weight:600}
+#msgX{position:absolute;top:4px;right:6px;border:0;background:transparent;color:inherit;font-size:1.4rem;line-height:1;cursor:pointer;padding:2px 8px}
+header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px;max-width:560px;width:calc(100% - 32px);padding:18px 20px}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog li{margin:8px 0}
+.sf{margin:14px 0 6px}
+.sf .fld{margin:0 0 16px}
+.sf .lb{display:block;font-weight:600;margin:0 0 6px}
+.sf .lb small{font-weight:400;color:var(--mut)}
+.rng{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.rng input{width:110px}
+.chip{background:transparent;color:var(--ac);border:1px solid var(--bd);border-radius:999px;padding:4px 12px;font:inherit;font-size:.9rem;cursor:pointer;margin:0 6px 6px 0}
+.chip[aria-pressed=true]{background:var(--ac);color:#fff;border-color:var(--ac)}
+.chip:hover{border-color:var(--ac);background:rgba(26,115,232,.08)}
+.sf .go{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
+.sf .go .btn{margin:0}
+details.how{margin:10px 0 4px}
+details.how summary{cursor:pointer;color:var(--ac);font-size:.95rem}
+details.how ul{margin:8px 0 0;padding-left:20px}
+details.how li{margin:5px 0}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--bd);margin:0 0 12px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);font:inherit;padding:8px 12px;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--ac);border-bottom-color:var(--ac);font-weight:600}
+table.dist{border-collapse:collapse;width:100%;font-size:.93rem}
+table.dist td,table.dist th{padding:4px 6px;border-top:1px solid var(--bd)}
+table.dist th{border-top:0;font-weight:500;color:var(--mut);text-align:right}
+table.dist td.r{text-align:right}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
-<h1>gmail</h1>
-<p>Nouvelle application créée avec Le Déployeur.</p>
-<p>Déploie ton code depuis l'étape 3 pour remplacer cette page.</p>
+<div id="gtop" popover="manual" hidden>
+  <div id="gprog" hidden role="status" aria-live="polite"><div class="gp-row"><span id="gpLabel"></span><b id="gpPct">0 %</b></div><progress id="gpBar" value="0" max="1000"></progress></div>
+  <div id="msg" role="alert"><span id="msgTxt"></span><button type="button" id="msgX" title="Fermer ce message" aria-label="Fermer ce message">×</button></div>
+</div>
+<main>
+<div style="text-align:right"><button class="btn sec" id="verBtn" type="button" title="Historique des versions"></button></div>
+
+<!-- ===== PAGE DE CONFIGURATION ===== -->
+<section id="setup" hidden>
+  <h1>👋 Bienvenue : configurons l’accès à Gmail</h1>
+  <p>Pour que cette application puisse lire et trier vos mails, Google exige que vous créiez <b>votre propre « identifiant client OAuth »</b> (c’est gratuit, 5 minutes). Il suffit de suivre les 5 étapes ci‑dessous.</p>
+  <div class="okb"><b>Bon à savoir :</b> il n’y a <b>pas de clé API ni de « secret »</b> à copier. Seul l’<b>ID client</b> est nécessaire. Il est enregistré uniquement dans le <code>localStorage</code> de votre navigateur : rien n’est envoyé à un serveur tiers, et le code ne contient aucun secret.</div>
+  <div class="note" id="fileWarn" hidden>⚠️ Vous avez ouvert ce fichier directement (<code>file://</code>). Google refuse la connexion dans ce cas. Lancez un petit serveur local : dans le dossier du fichier, tapez <code>python3 -m http.server 8000</code> puis ouvrez <code>http://localhost:8000/menage-gmail.html</code>.</div>
+
+  <div class="card step"><div class="num">1</div><div>
+    <h2>Créer un projet Google Cloud</h2>
+    <p>Connectez‑vous avec le compte Google de la boîte à nettoyer, acceptez les conditions si demandé, puis créez un projet (nom libre, ex. « Menage Gmail »). Laissez « Organisation » sur « Aucune organisation ».</p>
+    <a class="btn" target="_blank" rel="noopener" href="https://console.cloud.google.com/projectcreate">Créer un projet ↗</a>
+    <p class="mut">Vérifiez ensuite, en haut de la page, que votre nouveau projet est bien sélectionné.</p>
+  </div></div>
+
+  <div class="card step"><div class="num">2</div><div>
+    <h2>Activer l’API Gmail</h2>
+    <p>Sur la page ci‑dessous, vérifiez que votre projet est sélectionné puis cliquez sur le bouton bleu <b>« Activer »</b>.</p>
+    <a class="btn" target="_blank" rel="noopener" href="https://console.cloud.google.com/apis/library/gmail.googleapis.com">Activer l’API Gmail ↗</a>
+  </div></div>
+
+  <div class="card step"><div class="num">3</div><div>
+    <h2>Configurer l’écran de consentement</h2>
+    <p>Cliquez sur « Commencer » (Google Auth Platform) et remplissez :</p>
+    <ul>
+      <li><b>Nom de l’application</b> : « Menage Gmail » ; <b>e‑mail d’assistance</b> : le vôtre.</li>
+      <li><b>Audience</b> : choisissez <b>« Externe »</b> (ou « Interne » si vous avez un compte Google Workspace).</li>
+      <li><b>Coordonnées</b> : votre adresse e‑mail, puis acceptez et créez.</li>
+    </ul>
+    <a class="btn" target="_blank" rel="noopener" href="https://console.cloud.google.com/auth/overview">Écran de consentement ↗</a>
+    <p><b>Important (si « Externe ») :</b> ajoutez‑vous comme utilisateur test, sinon Google bloquera la connexion. Allez dans <b>Audience → Utilisateurs test → Add users</b> et saisissez votre adresse Gmail.</p>
+    <a class="btn sec" target="_blank" rel="noopener" href="https://console.cloud.google.com/auth/audience">Ajouter un utilisateur test ↗</a>
+    <div class="note">Vous pouvez laisser l’application en mode « Test » : c’est suffisant pour un usage personnel (l’accès doit simplement être ré‑autorisé de temps en temps).</div>
+  </div></div>
+
+  <div class="card step"><div class="num">4</div><div>
+    <h2>Créer l’identifiant client OAuth</h2>
+    <p>Sur la page ci-dessous : <b>Type d’application = « Application Web »</b>, nom libre. Dans <b>« Origines JavaScript autorisées »</b>, cliquez sur « Ajouter un URI » et collez exactement l’adresse suivante (sans slash final) :</p>
+    <p><code id="origin"></code> <button class="btn sec" id="copyOrigin" type="button">Copier</button></p>
+    <p>Laissez « URI de redirection » vide, puis cliquez sur « Créer ». Une fenêtre affiche votre <b>ID client</b>, qui se termine par <code>.apps.googleusercontent.com</code> : copiez‑le.</p>
+    <a class="btn" target="_blank" rel="noopener" href="https://console.cloud.google.com/auth/clients/create">Créer l’ID client ↗</a>
+    <p class="mut">Si vous changez un jour d’adresse ou de port (ex. 8000 → 8080), il faudra ajouter la nouvelle origine ici. Vous pourrez retrouver l’ID plus tard dans <a target="_blank" rel="noopener" style="color:var(--ac)" href="https://console.cloud.google.com/auth/clients">la liste de vos clients</a>.</p>
+  </div></div>
+
+  <div class="card step"><div class="num">5</div><div style="flex:1">
+    <h2>Coller l’ID client ici</h2>
+    <input type="text" id="cid" placeholder="123456789-abcdef….apps.googleusercontent.com" autocomplete="off" spellcheck="false">
+    <p><button class="btn" id="saveId" type="button">Enregistrer et commencer</button></p>
+  </div></div>
+</section>
+
+<!-- ===== APPLICATION ===== -->
+<section id="app" hidden>
+  <header>
+    <h1>🧹 Ménage Gmail</h1>
+    <button class="btn sec" id="reset" type="button">Réinitialiser les clés</button>
+  </header>
+  <p class="mut">Les messages supprimés vont dans la <b>corbeille</b> de Gmail (récupérables 30 jours). Rien n’est supprimé définitivement par cette application.</p>
+
+  <div class="card" id="connect">
+    <h2>Connexion</h2>
+    <p>Cliquez pour autoriser l’accès à votre boîte. Google affichera peut‑être « Application non validée » : c’est normal, c’est <i>votre</i> application → cliquez sur <b>Paramètres avancés</b> puis <b>Accéder à Menage Gmail</b>.</p>
+    <button class="btn" id="go" type="button">Se connecter à Gmail</button>
+  </div>
+
+  <div class="card" id="histCard">
+    <h2>🛠 Provisoire : sauvegarder l’historique de index.html</h2>
+    <p class="mut" style="margin:0 0 8px">Reproduit l’historique du dépôt public ci-dessous <b>commit par commit</b> dans le dépôt du Journal GitHub (par ex. <code>gmail-privatedata</code>) : une version de <code>index-history.html</code> par version de <code>index.html</code>, avec le même message, le même auteur et la même date. Les commits sont ajoutés à la suite de la branche principale ; les autres fichiers du dépôt ne sont pas modifiés. Le Journal GitHub doit déjà être configuré (dépôt + jeton avec écriture, dépôt non vide). Compter environ 3 secondes par version (limite GitHub) ; un contrôle empêche de le faire deux fois (pas de doublons).</p>
+    <input type="text" id="histRepo" placeholder="pseudo/nom-du-depot-public" autocomplete="off" spellcheck="false" style="margin-bottom:8px">
+    <button class="btn" id="histBtn" type="button">Reproduire l’historique</button>
+    <p class="mut" id="histStatus" style="margin:6px 0 0"></p>
+  </div>
+
+  <div id="tools" hidden>
+    <div class="card">
+      <h2>Ma boîte en chiffres</h2>
+      <div id="stats" class="mut">Chargement…</div>
+      <p><button class="btn sec" id="chartBtn" type="button">📉 Courbes d’évolution</button></p>
+    </div>
+    <div class="card">
+      <details id="ghDet">
+      <summary style="cursor:pointer"><h2 style="display:inline">Journal GitHub <span class="mut">(optionnel)</span></h2></summary>
+      <p class="mut">Chaque suppression est notée dans un fichier JSON de <b>votre</b> dépôt GitHub : date, catégorie (pour un expéditeur : seulement son domaine), nombre de messages, totaux après nettoyage. Aucun contenu de mail. Sans GitHub, le journal reste dans ce navigateur. Les mesures du graphique « Répartition par boîte » (nombres de messages par catégorie, rien d’autre) sont dans un second fichier, <code>menage-gmail-repartition.json</code>, du même dépôt. Chaque compte Gmail a son propre dossier dans ce dépôt, nommé d’après son adresse : les données de plusieurs comptes ne sont jamais mélangées.</p>
+      <details><summary><b>Comment configurer GitHub (3 étapes)</b></summary>
+        <ol>
+          <li>Créez un dépôt <b>privé</b> (ex. « gmail-privatedata », distinct du dépôt public qui héberge la page). <a class="btn sec" target="_blank" rel="noopener" href="https://github.com/new">Créer un dépôt ↗</a></li>
+          <li>Créez un jeton « fine-grained » : <b>Repository access = Only select repositories</b> (ce dépôt seul), et sous Permissions → Repository permissions : <b>Contents = Read and write</b>. <a class="btn sec" target="_blank" rel="noopener" href="https://github.com/settings/personal-access-tokens/new">Créer un jeton ↗</a> Copiez-le immédiatement : GitHub ne l’affiche qu’une fois.</li>
+          <li>Renseignez le dépôt (<code>pseudo/nom-du-depot</code>) et le jeton ci-dessous, puis enregistrez.</li>
+        </ol>
+      </details>
+      <p><input type="text" id="ghRepo" placeholder="pseudo/gmail-privatedata" autocomplete="off" style="margin-bottom:8px">
+      <input type="password" id="ghTok" placeholder="github_pat_…" autocomplete="off"></p>
+      <button class="btn" id="ghSave" type="button">Enregistrer et synchroniser</button>
+      <button class="btn sec" id="ghClear" type="button">Supprimer le jeton</button>
+      <p class="mut" id="ghStatus"></p>
+      </details>
+    </div>
+    <div class="card">
+      <h2>Garde-fous de suppression</h2>
+      <p class="mut" style="margin:0 0 6px">Ces mails sont toujours épargnés par tous les boutons « Corbeille », « Scannés » et « Tous » (les nombres affichés en tiennent compte). Réglage mémorisé dans ce navigateur.</p>
+      <label class="mut gl" title="Opérateur Gmail : -is:starred"><input type="checkbox" id="gStar"> ⭐ suivis d’une étoile</label>
+      <label class="mut gl" title="Opérateur Gmail : -is:important"><input type="checkbox" id="gImp"> ❗ marqués importants</label>
+      <label class="mut gl" title="Opérateur Gmail : -has:userlabels (libellés que vous avez créés ; les onglets Promotions, Réseaux sociaux… ne comptent pas)"><input type="checkbox" id="gLab"> 🏷 ayant un libellé personnel</label>
+      <label class="mut gl" title="Opérateur Gmail : -has:attachment"><input type="checkbox" id="gAtt"> 📎 avec pièce jointe</label>
+    </div>
+    <div class="card">
+      <h2>Nettoyages rapides</h2>
+      <div id="presets"></div>
+    </div>
+    <div class="card">
+      <h2>Expéditeurs les plus bavards</h2>
+      <p class="mut" style="margin:0 0 4px">Repère les expéditeurs qui vous envoient le plus de mails, pour nettoyer en priorité. Choisissez où chercher et quels messages analyser, puis lancez l’analyse.</p>
+      <div class="sf">
+        <div class="fld">
+          <label class="lb" for="scope">1 · Où chercher ?</label>
+          <select id="scope" style="width:100%;max-width:420px" title="Périmètre analysé : boîte de réception, tous les messages, archivés, onglets Gmail ou un de vos libellés"></select>
+          <label class="mut" style="display:block;margin-top:8px">Ancienneté minimale des mails concernés :
+            <select id="scopeAge" style="max-width:100%" title="Un seul réglage pour l’analyse ET la suppression : les mails plus récents sont exclus de la liste, ne sont pas comptés et ne peuvent pas être mis à la corbeille depuis cette section (boutons Scannés et Tous)">
+              <option value="">Aucune limite : tous les mails, quel que soit leur âge</option>
+              <option value="6m">Uniquement les mails de plus de 6 mois (les plus récents sont exclus)</option>
+              <option value="1y">Uniquement les mails de plus d’un an (les plus récents sont exclus)</option>
+              <option value="2y">Uniquement les mails de plus de 2 ans (les plus récents sont exclus)</option>
+              <option value="5y">Uniquement les mails de plus de 5 ans (les plus récents sont exclus)</option>
+            </select></label>
+          <label class="mut" style="display:block;margin-top:8px">Taille minimale des mails concernés :
+            <input type="number" id="scopeSize" min="0" step="1" value="0" style="width:90px" title="0 = aucun filtre. Sinon, seuls les mails de plus de cette taille sont analysés (et supprimables depuis cette section) : requête Gmail larger:NM"> Mo
+            <span class="mut">(0 = aucun filtre sur la taille ; sinon l’analyse ne contient que des mails plus gros que ce seuil)</span></label>
+          <p class="mut" style="margin:4px 0 0">Ce réglage vaut pour l’analyse et pour la suppression (Scannés, Tous). Pour une analyse déjà affichée, c’est l’ancienneté utilisée lors de cette analyse qui s’applique ; elle est rappelée dans l’encadré « Analyse affichée ».</p>
+        </div>
+        <div class="fld">
+          <span class="lb">2 · Quels messages analyser ? <small>(rang 1 = le plus récent)</small></span>
+          <div class="rng">
+            <label>Du rang <input type="number" id="rFrom" min="1" value="1"></label>
+            <label>au rang <input type="number" id="rTo" min="1" value="500"></label>
+            <label class="mut">soit <input type="number" id="rCount" min="1" value="500"> messages</label>
+          </div>
+          <p class="mut" style="margin:6px 0 8px">Laissez « au rang » vide pour aller jusqu’au dernier message. Les trois champs se mettent à jour entre eux.</p>
+          <div id="chips"><span class="mut">Raccourcis : </span><button type="button" class="chip" data-n="500">500 derniers</button><button type="button" class="chip" data-n="2000">2 000 derniers</button><button type="button" class="chip" data-n="10000">10 000 derniers</button><button type="button" class="chip" data-n="0">Tous (long)</button></div>
+        </div>
+        <div class="go">
+          <button class="btn" id="scan" type="button">Analyser</button>
+          <button class="btn sec" id="stop" type="button" hidden>⏸ Arrêter</button>
+          <span class="mut" id="est"></span>
+        </div>
+      </div>
+      <details class="how">
+        <summary>Comment ça marche ? (durée, reprise, rangs)</summary>
+        <ul class="mut">
+          <li><b>Une requête par message</b> : environ 1 minute pour 3 000 messages (limite Gmail ≈ 50 messages/s). Gardez l’onglet visible.</li>
+          <li>L’analyse peut être arrêtée puis reprise ; son résultat est mémorisé sur cet ordinateur (localStorage).</li>
+          <li>Les rangs se décalent quand de nouveaux mails arrivent ou après un nettoyage.</li>
+          <li>Pour explorer une zone ancienne (par exemple du rang 50 000 au rang 60 000), Gmail doit d’abord lister tous les messages jusqu’au rang de fin : environ 1 minute pour 60 000.</li>
+        </ul>
+      </details>
+      <div id="scanBox" class="pbox" hidden>
+        <progress id="prog" value="0" max="1" style="width:100%"></progress>
+        <p id="scanInfo" style="margin:6px 0 0"></p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:1rem;margin:0 0 4px">Analyses enregistrées</h3>
+      <div id="scanList"></div>
+      <h3 style="font-size:1rem;margin:16px 0 4px">Expéditeurs</h3>
+      <details class="how" style="margin:6px 0 4px">
+        <summary>À quoi servent les boutons Scannés, Tous et Info ?</summary>
+        <p class="mut" style="margin:8px 0 4px"><b style="color:#e8710a">Scannés</b> : ne met à la corbeille que les messages identifiés lors de l’analyse affichée. <b style="color:var(--dg)">Tous</b> : met à la corbeille tous les messages de l’expéditeur dans le périmètre de la liste déroulante, y compris hors de la zone analysée. L’ancienneté minimale de l’analyse affichée s’applique aussi à la suppression : les mails plus récents ne sont jamais touchés. Le champ de recherche filtre tous les expéditeurs (pas seulement les 50 premiers). Les <b>garde-fous de suppression</b> (étoilés et importants épargnés par défaut ; libellé personnel et pièce jointe en option) valent pour tous les boutons de suppression. Le tri « Taille (Mo) » classe les expéditeurs par poids total de leurs mails scannés (analyses faites avec cette version ou une suivante). Le tri « Mails non lus » classe les expéditeurs par inutilité à partir de l’analyse, avec pour chacun la part de non lus, les favoris, l’onglet Gmail dominant, la désinscription possible et si vous lui avez déjà écrit. Quand l’analyse est partielle (rang de début supérieur à 1, rang de fin renseigné ou analyse incomplète), chaque expéditeur affiche « scannés / total dans le périmètre » : la valeur du bouton choisi (« Mails scannés » ou « Total dans le périmètre ») est en noir, l’autre en gris. Quand l’analyse couvre tout le périmètre, les deux nombres sont identiques et ce choix est masqué. <b>Info</b> affiche une ligne par bouton (Voir, Voir scannés, Scannés, Tous) avec le nombre exact de mails concernés et ce que ce nombre mesure, pour ne pas être surpris par ce que Gmail affichera ou par ce qui sera supprimé. Passez la souris sur un bouton pour le détail.</p>
+      </details>
+      <input type="text" id="sfilter" placeholder="🔍 Rechercher un expéditeur (adresse ou nom)…" autocomplete="off" style="margin:8px 0 2px">
+      <p class="mut" id="sfilterInfo" style="margin:0 0 4px"></p>
+      <div id="viewTitle" class="banner" hidden><div id="viewTxt"></div>
+        <div id="viewMode" style="margin-top:8px"><span class="mut">Nombre affiché par expéditeur : </span>
+          <button type="button" class="chip" data-m="scan" aria-pressed="true">Mails scannés</button><button type="button" class="chip" data-m="total" aria-pressed="false" title="Trie la liste sur le nombre de mails de chaque expéditeur dans tout le périmètre (envoyés et brouillons exclus), et non plus sur la seule zone analysée">Total dans le périmètre</button>
+          <div class="mut" id="modeInfo" style="margin-top:2px"></div></div>
+          <div id="sortMode" style="margin-top:6px"><span class="mut">Trier par : </span>
+            <button type="button" class="chip" data-so="n" aria-pressed="true">Nombre de mails</button><button type="button" class="chip" data-so="u" aria-pressed="false">Mails non lus (les plus inutiles d’abord)</button><button type="button" class="chip" data-so="z" aria-pressed="false">Taille (Mo)</button>
+            <div class="mut" id="sortInfo" style="margin-top:2px"></div></div></div>
+      <div id="senders"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<dialog id="verDlg">
+  <h2>Historique des versions</h2>
+  <ul id="verList" style="padding-left:18px"></ul>
+  <div style="text-align:right"><button class="btn" id="verClose" type="button">Fermer</button></div>
+</dialog>
+
+<dialog id="chartDlg" style="max-width:760px">
+  <h2>Nombre de messages</h2>
+  <div class="tabs" role="tablist">
+    <button id="tab1" type="button" role="tab" aria-selected="true">📉 Évolution du total</button>
+    <button id="tab2" type="button" role="tab" aria-selected="false">🗂️ Répartition par boîte</button>
+  </div>
+  <div id="panel1" role="tabpanel">
+    <div id="chartBox"></div>
+    <p class="mut" id="chartLegend"></p>
+    <div class="pbox" style="margin:10px 0">
+      <button class="btn sec" id="exactBtn" type="button" style="margin:0 8px 6px 0">🔎 Comptage exact</button>
+      <span class="mut">Liste réellement les messages (corbeille, spam, autres) au lieu de se fier aux compteurs de Gmail : environ 1 minute pour 60 000 messages.</span>
+      <div id="exactBox" style="margin-top:6px"></div>
+    </div>
+  </div>
+  <div id="panel2" role="tabpanel" hidden>
+    <div id="distBox"></div>
+    <div id="distLegend" style="margin-top:8px"></div>
+    <p id="distStatus" style="margin:8px 0 4px"></p>
+    <div id="distAsk" class="pbox" hidden>
+      <p style="margin:0 0 4px"><b>Voulez-vous actualiser les données en lançant un nouveau comptage exact ?</b></p>
+      <p class="mut" id="distAskInfo" style="margin:0 0 8px"></p>
+      <button class="btn" id="distYes" type="button" style="margin:0 8px 6px 0">Oui, lancer un nouveau comptage</button>
+      <button class="btn sec" id="distNo" type="button" style="margin:0 0 6px 0">Non, garder les données actuelles</button>
+    </div>
+    <div id="distIdle" class="pbox" hidden>
+      <button class="btn sec" id="distBtn" type="button" style="margin:0 8px 6px 0">↻ Nouveau comptage</button>
+      <span class="mut">Les mesures sont enregistrées dans <code>menage-gmail-repartition.json</code> (navigateur, et GitHub si configuré).</span>
+    </div>
+  </div>
+  <div style="text-align:right"><button class="btn" id="chartClose" type="button">Fermer</button></div>
+</dialog>
+
+<script>
+const VERSION = "1.75"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
+  ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
+  ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
+  ["1.2", "Carte « Ma boîte en chiffres » : total, boîte de réception, non lus, spam, corbeille."],
+  ["1.3", "Affichage du numéro de version (titre de l’onglet)."],
+  ["1.4", "Analyse des expéditeurs : barre de progression, temps restant, arrêt/reprise, résultat mémorisé dans le navigateur."],
+  ["1.5", "Bouton de version en haut à droite (accueil et espace de travail) ouvrant cet historique."],
+  ["1.6", "Journal des nettoyages de plus de 100 messages (local + GitHub optionnel) et courbe d’évolution du nombre de messages."],
+  ["1.7", "Analyse : plage de rangs (début/fin) ou nombre saisi à la main, mois et année des mails en cours d’analyse, bouton « Arrêt en cours… » dès le clic."],
+  ["1.8", "Reprise d’une analyse interrompue après relance de l’application : formulaire restauré, bouton « Reprendre » et repérage du point de reprise malgré l’arrivée de nouveaux mails."],
+  ["1.9", "La zone « Journal GitHub » est dépliable et repliée par défaut (elle s’ouvre seule en cas d’erreur GitHub)."],
+  ["1.10", "Les analyses enregistrées avant la 1.7 deviennent reprenables (rang de début 1 déduit) ; message de remplacement plus explicite."],
+  ["1.11", "Plusieurs analyses enregistrées côte à côte (une par plage de rangs), série de sondages (ex. 20000-21000, 30000-31000), liste avec Voir / Reprendre / Supprimer et cumul."],
+  ["1.12", "Suppression par expéditeur : au choix tous ses messages de la boîte de réception ou de tout Gmail, au-delà de la zone sondée (envoyés et brouillons épargnés)."],
+  ["1.13", "Bouton « Reprendre » : « Reprise en cours… » dès le clic, puis « Analyse en cours… » quand le traitement a commencé."],
+  ["1.14", "Par expéditeur : bouton orange « Supprimer mails scannés » (uniquement les messages identifiés lors de l’analyse, dont les identifiants sont désormais mémorisés) et bouton rouge « Supprimer tous les mails » (tous ses messages dans le périmètre choisi dans la liste déroulante : boîte de réception ou tous les messages). Les anciennes analyses doivent être refaites pour activer le bouton orange."],
+  ["1.15", "Liste des expéditeurs : présentation compacte avec le nombre à côté du nom ; boutons raccourcis « Scannés » (orange) et « Tous » (rouge) ; bulles d’aide jaunes, lisibles, qui apparaissent après un court délai au survol."],
+  ["1.16", "Plage de rangs dépassant le nombre de messages du périmètre : la plage est ajustée à l’existant et l’analyse se lance (au lieu d’une erreur « Plage vide ») ; si le début est au-delà du dernier message, un message précise le nombre de messages du périmètre."],
+  ["1.17", "Messages d’ajustement de plage plus explicites : ils comparent la demande (rangs demandés) au nombre de messages de la boîte concernée, en nommant la boîte (« la boîte de réception ne contient que… » ou « Tous les messages… »)."],
+  ["1.18", "Suppression de la zone « Série de sondages » (plusieurs plages) : une analyse se lance désormais par une seule plage de rangs."],
+  ["1.19", "Bouton « 📋 Résumé » sur chaque analyse enregistrée : copie une ligne par expéditeur (nombre, adresse, nom, période, non lus, favoris, onglets Gmail, désinscription) et la liste des domaines à plusieurs adresses. Les analyses doivent être refaites pour obtenir période, non lus, favoris et onglets."],
+  ["1.20", "Pendant une analyse, la barre de progression et la ligne d’information (mois et année des mails en cours, rang, temps restant) sont réunies dans un même encadré, visible seulement pendant l’analyse."],
+  ["1.21", "Bouton « Info » par expéditeur : nombre exact de mails concernés par « Scannés » et par « Tous » (dont ceux hors zone analysée) avant toute suppression ; texte des boutons non sélectionnable (ordinateur et iPhone) ; bulles d’aide masquées dès qu’on clique ou touche l’écran."],
+  ["1.22", "Fiabilité : les messages illisibles pendant une analyse sont retentés puis signalés (message final, liste des analyses, résumé) au lieu d’être ignorés en silence ; champ de recherche filtrant tous les expéditeurs (et non plus seulement les 50 premiers)."],
+  ["1.23", "La bulle du bouton « Tous » affiche le nombre exact de mails qui seront mis à la corbeille (calculé au survol, puis mémorisé)."],
+  ["1.24", "Bouton « Voir » d’une analyse : liseré de couleur autour de l’analyse affichée dans la liste et bandeau récapitulatif (périmètre, rangs, dates, messages comptés, expéditeurs, alertes) juste au-dessus de la liste des expéditeurs."],
+  ["1.25", "Protection des mails récents : liste déroulante 0 / 6 / 12 / 24 mois (0 = tout supprimer), mémorisée dans le navigateur et dans le journal GitHub. S’applique à « Scannés », « Tous » et aux nettoyages rapides ; Info, bulles et confirmations indiquent ce qui sera supprimé, ce qui est protégé et ce qui serait supprimé avec une protection à 0."],
+  ["1.26", "Ma boîte en chiffres : les lignes Boîte de réception + Autres emplacements + Spam + Corbeille s’additionnent exactement au total ; zone dépliable (repliée par défaut) détaillant les autres emplacements en envoyés, brouillons et archivés ; les non lus sont indiqués à part."],
+  ["1.27", "Détail des autres emplacements : bouton « Voir dans Gmail » pour les envoyés, les brouillons et les archivés (recherche équivalente ouverte dans Gmail) et courte explication de ce que sont les archivés."],
+  ["1.28", "Nettoyages rapides : le nombre affiché est désormais exact (liste complète des messages) au lieu de l’estimation de Gmail, qui renvoyait souvent un chiffre arbitraire comme 201 ; avec une protection active, les mails protégés sont indiqués à part."],
+  ["1.29", "Bulle du bouton « Voir » d’un expéditeur : précise ce qu’on voit dans Gmail (tous ses mails, scannés ou non, protégés compris, spam et corbeille exclus)."],
+  ["1.30", "Message « Protection désactivée… » affiché sur fond rouge pâle (même légèreté que le vert pâle des autres choix de protection)."],
+  ["1.31", "Courbe d’évolution : nettoyages notés à partir de 20 messages (au lieu de 100) ; lignes plus épaisses, de couleurs différentes (bleu : hors corbeille, orange : total) et légende reprenant les mêmes traits."],
+  ["1.32", "Plus de seuil : chaque suppression (même d’un seul mail) crée un point sur la courbe et une ligne dans le journal ; traits verticaux supprimés, le détail de la suppression est dans la bulle du point ; écritures GitHub regroupées (une seule, 8 s après la dernière suppression)."],
+  ["1.33", "GitHub : une seule écriture, 10 minutes après la dernière activité (suppression ou changement de protection) ; si le navigateur est fermé avant, l’envoi est fait à la connexion suivante. Les données restent dans le navigateur entre-temps."],
+  ["1.34", "Liste déroulante des périmètres enrichie : boîte de réception, tous les messages, archivés, non lus, onglets Gmail (Promotions, Réseaux sociaux, Notifications, Forums, Principal) et vos libellés personnalisés (chargés depuis Gmail, avec leur nombre de messages). Les textes d’information, les résumés et les analyses enregistrées affichent le vrai nom du périmètre."],
+  ["1.35", "Section « Expéditeurs les plus bavards » réorganisée : deux étapes titrées (« Où chercher ? » puis « Quels messages analyser ? »), raccourcis en pastilles, durée estimée affichée avant le lancement, et explications techniques regroupées dans un bloc repliable « Comment ça marche ? »."],
+  ["1.36", "La section est répartie en deux zones blanches distinctes (analyse, puis analyses enregistrées et expéditeurs) ; l’explication des boutons Scannés / Tous / Info est dans un bloc dépliable, replié par défaut."],
+  ["1.37", "Courbe d’évolution : bouton « Comptage exact » qui liste réellement les messages (corbeille, spam, autres), le compare aux compteurs de Gmail, signale tout écart et ajoute un point de référence (cerclé) à la courbe."],
+  ["1.38", "Liste des expéditeurs : bouton « Voir scannés » qui ouvre Gmail sur les seuls mails de l’expéditeur couverts par l’analyse affichée (même périmètre, même période de mails que les rangs analysés ; en vue cumul, une période par analyse)."],
+  ["1.39", "Nettoyages rapides : nouvelle catégorie « Messages de plus de 20 Mo » (larger:20M)."],
+  ["1.40", "Comptage exact : correction d’une erreur « Cannot read properties of null (reading 'messages') » quand Gmail renvoie une réponse vide (par exemple corbeille ou spam vide)."],
+  ["1.41", "Fenêtre des courbes à deux onglets : « Évolution du total » (inchangé) et « Répartition par boîte » (colonnes empilées : réception, archivés/autres, envoyés, brouillons, spam, corbeille). Chaque affichage du second onglet fait un comptage exact et ajoute une mesure au fichier dédié menage-gmail-repartition.json (navigateur + GitHub si configuré) ; la synchronisation GitHub gère désormais les deux fichiers."],
+  ["1.42", "Répartition par boîte : l’affichage de l’onglet ne relance plus automatiquement un comptage exact ; il demande d’abord « Voulez-vous actualiser les données en lançant un nouveau comptage exact ? » (réponse « Non » : on garde les mesures enregistrées). Premier affichage sans aucune mesure : le comptage démarre directement."],
+  ["1.43", "Répartition par boîte : la question et le bouton « Actualiser » ne s’affichent plus en double (la question remplace le bouton tant qu’elle est posée) ; la catégorie « Archivés / autres » est scindée en « Archivés » (ni réception, ni envoyés, ni brouillons) et « Autres » (chats, messages programmés, messages mis en attente), avec une description de chaque catégorie dans la légende. Les anciennes mesures ne sont plus prises en charge."],
+  ["1.44", "Détail des autres emplacements : sous la ligne « Archivés », une ligne par type de message archivé (Promotions, Réseaux sociaux, Notifications, Forums, Principal / sans catégorie) avec son nombre et un bouton « Voir dans Gmail »."],
+  ["1.45", "Nettoyage rapide : la ligne « Notifications (forums/mises à jour) de plus de 2 ans » est scindée en deux lignes distinctes, « Notifications » et « Forums ». Les lignes Promotions, Réseaux sociaux, Notifications et Forums ont une case à cocher « de plus de … » pour ajouter ou retirer la condition d’ancienneté (le nombre, le bouton Voir et la mise à la corbeille suivent la case)."],
+  ["1.46", "Comptage exact de l’onglet « Évolution du total » : il compte désormais chaque catégorie de la répartition (réception, archivés, autres, envoyés, brouillons, spam, corbeille) et enregistre automatiquement le résultat comme dernière mesure de l’onglet « Répartition par boîte ». À l’ouverture de cet onglet, la question de nouveau comptage n’est plus posée si la dernière mesure date de moins de 15 minutes."],
+  ["1.47", "Liste des expéditeurs : le nom, le nombre et tous les boutons restent toujours sur une seule ligne (y compris avec « Se désinscrire ») ; si la place manque, ce sont les intitulés des boutons qui passent sur deux lignes. Sur écran très étroit (moins de 620 px), les boutons repassent sous le nom."],
+  ["1.48", "Encadré « Analyse affichée » : bascule entre « Mails scannés » (vue par défaut) et « Total de ses mails » (nombre total de mails de chaque expéditeur dans le périmètre, envoyés et brouillons exclus). Dans les deux vues, la liste est triée par nombre décroissant ; les totaux sont calculés une fois puis mémorisés pendant la session."],
+  ["1.49", "Liste des expéditeurs : nom et adresse sur deux lignes tronquées (une seule ligne chacune, texte complet au survol), boutons toujours sur la même ligne et calés à droite ; emplacement réservé à « Se désinscrire » pour que tous les boutons soient alignés verticalement d’une ligne à l’autre."],
+  ["1.50", "Correction de la liste des expéditeurs : chaque ligne occupe toute la largeur de la zone blanche, le nombre et les boutons sont calés contre le bord droit (plus de débordement) et alignés verticalement d’une ligne à l’autre ; largeur maximale de la page portée à 980 px pour laisser de la place aux noms."],
+  ["1.51", "Analyses : nouvelle liste « Âge des mails analysés » (aucune limite, ou uniquement les mails de plus d’un an / 2 ans / 5 ans). Dans « Analyses enregistrées », chaque titre indique explicitement si la liste est complète (✅ tous les mails, quel que soit leur âge) ou tronquée (✂️ uniquement les mails de plus de N ans, les plus récents sont exclus) ; mention reprise dans le résumé copié. Les analyses déjà enregistrées sont affichées comme complètes (elles ont été faites sans limite d’âge)."],
+  ["1.52", "Bulles d’aide : un clic ne masque plus que la bulle du bouton cliqué (avant, il désactivait toutes les bulles de la page jusqu’à ce qu’on ait quitté chacune d’elles) ; le bouton « 📋 Résumé » utilise la même bulle jaune que les autres boutons au lieu de l’infobulle native du navigateur, plus capricieuse."],
+  ["1.53", "Bulle du bouton « Voir » reformulée : elle disait « pas limité au périmètre « … uniquement les mails de plus de 2 ans » », ce qui se lisait à l’envers. Elle indique maintenant clairement que « Voir » n’applique aucun filtre (âge compris) et renvoie vers « Voir scannés » pour le périmètre de l’analyse."],
+  ["1.54", "Un seul réglage d’ancienneté : la carte « Protection des mails récents » (0 / 6 / 12 / 24 mois) est supprimée. « Âge des mails analysés » devient « Ancienneté minimale des mails concernés » (aucune limite, 6 mois, 1 an, 2 ans, 5 ans) et vaut pour l’analyse comme pour la suppression (Scannés, Tous), y compris dans la vue cumulée, qui suit désormais cette liste. Les nettoyages rapides n’ont plus que leurs cases à cocher ; « Messages de plus de 10 Mo » et « de plus de 20 Mo » en reçoivent une, décochée par défaut. Les compteurs, bulles et confirmations ne parlent plus de mails « protégés »."],
+  ["1.55", "Bulle du bouton « Voir » en deux temps : une première bulle immédiate, puis, après un court délai, le détail exact de ce que Gmail va afficher (nombre total de mails de l’adresse, dont envoyés/brouillons, dont ceux du périmètre choisi, dont ceux hors périmètre, et le nombre identifié par l’analyse). Avertissement quand l’adresse est celle du compte connecté (« Voir » affiche alors tous vos mails envoyés)."],
+  ["1.56", "Bouton « Info » : le champ affiche désormais une ligne par bouton (Voir, Voir scannés, Scannés, Tous) avec le nombre exact de mails concernés et ce que ce nombre mesure précisément (périmètre, période, envoyés/brouillons exclus ou non, zone analysée). Le nombre de « Voir scannés » est compté avec la même requête que celle ouverte dans Gmail."],
+  ["1.57", "Bouton « Total de ses mails » renommé « Total dans le périmètre » (il compte les mails de l’expéditeur dans le périmètre et l’ancienneté choisis, envoyés et brouillons exclus, et non son total Gmail). Il n’est affiché que si l’analyse est partielle (rang de début > 1, rang de fin renseigné ou analyse incomplète) ; sinon les deux nombres sont identiques. Dans ce cas, chaque expéditeur affiche « scannés / total » : la valeur du bouton choisi en noir, l’autre en gris ; les totaux des expéditeurs affichés se calculent en arrière-plan."],
+  ["1.58", "Nettoyages rapides : bulles explicatives sur « Voir » (requête Gmail ouverte, mêmes mails que le comptage) et sur « Corbeille » (en deux temps : explication immédiate, puis nombre exact de mails d’après le dernier comptage). La confirmation avant mise à la corbeille rappelle désormais la requête Gmail utilisée et que les mails restent récupérables 30 jours dans la corbeille Gmail (valable aussi pour Scannés et Tous)."],
+  ["1.59", "Garde-fous de suppression : nouvelle carte avec quatre cases (suivis d’une étoile et marqués importants, cochées par défaut ; libellé personnel et pièce jointe, en option). Elles s’appliquent à tous les boutons Corbeille, Scannés et Tous, aux comptages, aux bulles, à Info et aux confirmations, et sont mémorisées dans le navigateur. Tri par inutilité : nouveau choix « Trier par » (nombre de mails ou mails non lus ; score = non lus × part de non lus, favoris en dernier) ; chaque expéditeur affiche la part de non lus, les favoris, l’onglet Gmail dominant, la désinscription possible et, vérifié en arrière-plan pour les expéditeurs affichés, si vous lui avez déjà écrit (avertissement dans la confirmation). La vue cumulée additionne désormais non lus, favoris et onglets."],
+  ["1.60", "Tri par taille : l’analyse mémorise le poids de chaque mail (estimation Gmail) ; nouveau choix « Trier par : Taille (Mo) » et pastille 💾 par expéditeur, poids total de l’analyse dans la bannière et dans le résumé copié (colonne « taille »). Disponible pour les analyses faites avec cette version (les anciennes sont à refaire ; la taille est réduite proportionnellement après une suppression partielle). La confirmation de mise à la corbeille rappelle que l’espace n’est libéré qu’à la suppression définitive."],
+  ["1.61", "« Se désinscrire » corrigé : le bouton ouvrait le lien en GET, ce qui donnait « HTTP ERROR 400 » chez les expéditeurs qui n’acceptent que la désinscription « en un clic » (POST, RFC 8058). Le bouton lit maintenant l’en-tête du mail le plus récent de l’expéditeur (lien à jour), envoie la demande en POST après confirmation si l’expéditeur propose le « 1 clic », ouvre sinon sa page dans un nouvel onglet, ou ouvre un e-mail pré-rempli si la désinscription se fait par e-mail. Les expéditeurs qui n’ont qu’une adresse mailto sont désormais repérés."],
+  ["1.62", "Bannière d’une analyse (et du cumul) : ligne « 💾 Taille des mails scannés » toujours affichée (taille totale, « au moins » si elle n’est connue que pour une partie, ou « non mémorisée »). Pour une analyse enregistrée sans taille, bouton « Calculer la taille » qui lit la taille de chaque mail déjà identifié (requête légère, sans refaire l’analyse). La taille figure aussi dans la liste des analyses enregistrées."],
+  ["1.63", "Barre de progression partout où une opération prend du temps : une barre fixe en haut de page (au-dessus des fenêtres modales), à 0 dès l’appui sur le bouton, qui indique l’étape en cours et le pourcentage, puis disparaît à la fin. Concerne : comptage des nettoyages rapides (et recomptage d’une ligne), Corbeille (recherche puis mise à la corbeille par lots de 500), Scannés / Tous (calcul des mails concernés), Info, Total dans le périmètre, Calculer la taille, Se désinscrire, comptages exacts des graphiques, détail des autres emplacements, chargement des libellés, synchronisation GitHub (bouton). La barre de l’analyse repart de 0 pour chaque phase (liste des messages, puis lecture, y compris à la reprise). Le total est estimé d’après Gmail ; la barre ne recule jamais."],
+  ["1.64", "Cumul des analyses : la bannière « Cumul de N analyses » liste désormais les analyses qui se chevauchent (nombre exact de mails en commun quand les identifiants sont mémorisés, sinon d’après le périmètre et les rangs) ou indique qu’il n’y en a aucune. S’il y en a, les boutons « Voir » des analyses concernées et le bouton « Voir le cumul » sont encadrés en jaune tant que le cumul est affiché."],
+  ["1.65", "Messages toujours visibles : le message (erreur, confirmation, avertissement) s’affiche désormais en haut de l’écran sous la barre de progression, quel que soit le défilement de la page, avec un bouton × pour le fermer ; les erreurs sont encadrées en rouge. La zone de la barre de progression a un fond bleuté et un trait bleu pour ne pas se confondre avec la barre du navigateur. Pendant le calcul de la taille, le message n’évoque plus une « analyse » et « Voir » reste utilisable."],
+  ["1.66", "Cumul des analyses : le détail des chevauchements est dans une zone dépliable, pliée par défaut, dont le titre est « ⚠️ N chevauchement(s) » (l’état déplié est conservé quand le cumul est réaffiché)."],
+  ["1.67", "Nettoyages rapides : bouton « 💾 Taille » sur chaque ligne. Il liste les mails correspondant à la requête (garde-fous et case d’ancienneté compris), lit la taille de chacun (barre de progression fixe en haut de page, comme pour « Calculer la taille » des analyses) et affiche le total sous la ligne. Le résultat est mémorisé dans le navigateur (localStorage, une entrée par requête) : il est retrouvé d’une session à l’autre, avec sa date et un avertissement si le nombre de mails a changé depuis. Il est effacé après une mise à la corbeille de la ligne."],
+  ["1.68", "Section « Expéditeurs les plus bavards » : nouveau réglage « Taille minimale des mails » (en Mo ; 0 = aucun filtre, fonctionnement inchangé). Une valeur non nulle ajoute larger:NM au périmètre : l’analyse, les rangs, « Voir scannés », « Total dans le périmètre », « Scannés » et « Tous » ne portent alors que sur les mails plus gros que ce seuil. L’analyse enregistrée le rappelle clairement (titre, ligne dédiée « 📏 Filtre sur la taille » dans la bannière, liste des analyses, cumul, résumé copié) ; une analyse filtrée est distincte d’une analyse sans filtre sur la même plage."],
+  ["1.69", "Journal GitHub : l’exemple de dépôt devient « gmail-privatedata » (dépôt privé dédié aux données, distinct du dépôt public qui héberge la page) dans l’aide et le champ de saisie."],
+  ["1.70", "Bouton PROVISOIRE « Sauvegarder l’historique » (carte sous « Connexion », visible avant comme après la connexion) : lit tous les commits qui ont modifié index.html dans le dépôt public indiqué, récupère le code complet de chaque version avec le message de son commit, et écrit le tout dans index-history.html du dépôt du Journal GitHub (gmail-privatedata). Barre de progression fixe ; relançable à volonté (le fichier est régénéré en entier)."],
+  ["1.71", "Bouton provisoire d’historique refait : au lieu d’un fichier unique, il reproduit l’historique de index.html commit par commit dans le dépôt du Journal GitHub (branche « index-history », fichier index-history.html) : un commit par version, avec le même message, le même auteur et la même date que l’original. Création par l’API Git de GitHub (objets blob, tree, commit puis branche) avec temporisation et reprise automatique en cas de limite de débit ; la branche est régénérée à l’identique à chaque clic."],
+  ["1.72", "Reproduction de l’historique : correction de l’erreur « Parent SHA does not exist or is not a commit object ». GitHub ne rend pas toujours visible tout de suite un objet qu’il vient de créer ; le bouton réessaie maintenant (jusqu’à 8 fois, avec des attentes croissantes) quand un blob, un tree ou un commit parent n’est pas encore trouvé."],
+  ["1.73", "Reproduction de l’historique : plus de branche à part. Les commits (un par version de index.html, même message, même auteur, même date) sont ajoutés à la suite de la branche principale du dépôt du journal, qui garde tous ses autres fichiers (arbre de chaque commit construit sur le précédent). Un contrôle empêche les doublons si l’historique a déjà été reproduit ; la branche principale n’est mise à jour qu’à la fin, en avance rapide."],
+  ["1.74", "Reproduction de l’historique : réessai automatique (jusqu’à 6 fois, attentes croissantes) quand GitHub répond par une erreur serveur 5xx (« erreur 500 », 502, 503…) ou que la connexion échoue momentanément, au lieu d’abandonner dès la première erreur."],
+  ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."]
+];
+const LS = "gmailMenage.clientId";
+const $ = s => document.querySelector(s);
+let token = null;
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const getId = () => { try { return localStorage.getItem(LS) || ""; } catch (e) { return ""; } };
+const setId = v => { try { v ? localStorage.setItem(LS, v) : localStorage.removeItem(LS); return true; } catch (e) { msg("localStorage indisponible dans ce navigateur.", 1); return false; } };
+// Conteneur fixe en haut de l’écran (barre de progression + messages) : visible quel que soit le défilement, y compris au-dessus des fenêtres modales
+const Top = {
+  sync(restack) {
+    const el = $("#gtop"), any = !$("#gprog").hidden || $("#msg").style.display === "block";
+    if (any) { el.hidden = false; try { if (el.showPopover) { if (restack && el.matches(":popover-open")) el.hidePopover(); if (!el.matches(":popover-open")) el.showPopover(); } } catch (e) {} }
+    else { try { if (el.hidePopover && el.matches(":popover-open")) el.hidePopover(); } catch (e) {} el.hidden = true; }
+  }
+};
+function msg(t, err) { const m = $("#msg"); $("#msgTxt").textContent = t; m.className = err === 2 ? "bad" : err ? "err" : ""; m.style.display = t ? "block" : "none"; Top.sync(!!t); }
+$("#msgX").onclick = () => msg("");
+
+function render() {
+  const has = !!getId();
+  $("#setup").hidden = has; $("#app").hidden = !has;
+  if (!has) {
+    $("#origin").textContent = location.origin === "null" ? "(origine inconnue : lancez un serveur local)" : location.origin;
+    $("#fileWarn").hidden = location.protocol !== "file:";
+  }
+}
+
+$("#copyOrigin").onclick = () => navigator.clipboard?.writeText(location.origin).then(() => msg("Origine copiée.")).catch(() => {});
+$("#saveId").onclick = () => {
+  const v = $("#cid").value.trim();
+  if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) return msg("Cet ID client semble invalide : il doit se terminer par .apps.googleusercontent.com", 1);
+  if (setId(v)) { msg(""); render(); }
+};
+$("#reset").onclick = () => { if (confirm("Effacer l’ID client enregistré et revenir au guide ?")) { setId(""); token = null; scanData = null; scans = []; try { Object.keys(localStorage).filter(k => k.startsWith("gmailMenage.scan")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem(GH); } catch (e) {} acct = ""; $("#tools").hidden = true; $("#connect").hidden = false; render(); } };
+
+function loadGsi() {
+  return new Promise((res, rej) => {
+    if (window.google && google.accounts) return res();
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.onload = res;
+    s.onerror = () => rej(new Error("Impossible de charger le script Google (connexion ou bloqueur de pub ?)"));
+    document.head.appendChild(s);
+  });
+}
+// ===== Données rangées par compte Gmail =====
+const LEGACY_KEYS = [["gmailMenage.log", "log"], ["gmailMenage.dist", "dist"], ["gmailMenage.presetSizes", "presetSizes"], ["gmailMenage.scans", "scans"], ["gmailMenage.scan", "scan"], ["gmailMenage.ghDirty", "ghDirty"]];
+let legacyAsked = false;
+function claimLegacy() { // données enregistrées avant la v1.75 (non rattachées à un compte) : rattachement au compte connecté, après confirmation
+  try {
+    if (localStorage.getItem("gmailMenage.legacyClaimed") || legacyAsked) return;
+    const has = LEGACY_KEYS.filter(([o]) => localStorage.getItem(o) != null);
+    if (!has.length) return; legacyAsked = true;
+    if (!confirm("Des données enregistrées avant la v1.75 (analyses, journal, tailles…) existent dans ce navigateur. Appartiennent-elles au compte " + acct + " ?\n\nOK : elles sont rattachées à ce compte, et à lui seul.\nAnnuler : elles restent à part, intactes ; la question sera reposée à la prochaine connexion.")) return;
+    has.forEach(([o, n]) => { if (localStorage.getItem(AK(n)) == null) { localStorage.setItem(AK(n), localStorage.getItem(o)); localStorage.removeItem(o); } });
+    localStorage.setItem("gmailMenage.legacyClaimed", acct);
+  } catch (e) {}
+}
+function loadAccountData() { // (re)charge les données du compte connecté et vide tout ce qui appartenait au précédent
+  const L = rdJ(AK("log")), D = rdJ(AK("dist"));
+  logData = L ? { snaps: L.snaps || [], ops: L.ops || [] } : { snaps: [], ops: [] };
+  distData = D && Array.isArray(D.points) ? { points: D.points } : { points: [] };
+  presetSizes = rdJ(AK("presetSizes")) || {};
+  scans = []; scanData = null; cumulView = false; curSend = { list: [], scope: "" }; totRun++; fillTok++; wrTok++;
+  wrCache.clear(); cntCache.clear(); totCache.clear(); myAddrP = null; scopeLabels = []; ovlSet = new Set();
+  $("#senders").innerHTML = ""; setBanner(""); $("#sfilterInfo").textContent = "";
+}
+$("#go").onclick = async () => {
+  try {
+    await loadGsi();
+    google.accounts.oauth2.initTokenClient({
+      client_id: getId(),
+      scope: "https://www.googleapis.com/auth/gmail.modify",
+      callback: async r => {
+        if (r.error) return msg("Erreur de connexion : " + r.error + ". Vérifiez l’origine autorisée et l’utilisateur test (étapes 3 et 4).", 1);
+        token = r.access_token; msg("");
+        let email = ""; try { email = String((await api("profile")).emailAddress || "").toLowerCase(); } catch (e) { return msg("Connexion impossible : " + e.message, 1); }
+        if (!email) return msg("Adresse du compte Gmail illisible : connexion interrompue.", 1);
+        if (acct && acct !== email) { // changement de compte : on envoie d’abord ce qui était en attente pour l’ancien compte
+          clearTimeout(ghTimer); ghTimer = null;
+          try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) await ghSync(true); } catch (e) {}
+        }
+        acct = email; claimLegacy(); loadAccountData();
+        $("#connect").hidden = true; $("#tools").hidden = false; buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ghInit(); ghSync(false).then(() => { try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) ghSync(true); } catch (e) {} });
+      },
+      error_callback: e => msg("Connexion impossible : " + (e.type || "erreur"), 1)
+    }).requestAccessToken();
+  } catch (e) { msg(e.message, 1); }
+};
+
+// ===== Barre de progression globale : démarre à 0 dès l’appui sur le bouton, disparaît à la fin du traitement =====
+const Prog = (() => {
+  const ops = [], box = $("#gprog"), bar = $("#gpBar"), lab = $("#gpLabel"), pct = $("#gpPct");
+  const show = on => { box.hidden = !on; Top.sync(on); }; // la barre est dans le conteneur fixe #gtop
+  const render = () => {
+    const o = ops[ops.length - 1]; if (!o) return;
+    const r = Math.min(1, Math.max(o.hi, o.v / o.max)); // jamais de recul : les totaux estimés peuvent être corrigés en cours de route
+    bar.max = 1000; bar.value = Math.round(r * 1000);
+    lab.textContent = o.label + (ops.length > 1 ? " (+" + (ops.length - 1) + " autre" + (ops.length > 2 ? "s" : "") + " en cours)" : "");
+    pct.textContent = Math.round(r * 100) + " %";
+  };
+  return {
+    start(label, max = 1) {
+      const o = { label, v: 0, max: Math.max(1, max), hi: 0 }; ops.push(o); show(true); render();
+      return {
+        set(v, max, label) { if (max != null) o.max = Math.max(1, max); if (label != null) o.label = label; o.v = Math.max(0, v); o.hi = Math.max(o.hi, Math.min(1, o.v / o.max)); render(); },
+        done() { const i = ops.indexOf(o); if (i < 0) return; ops.splice(i, 1); if (ops.length) render(); else show(false); }
+      };
+    }
+  };
+})();
+async function api(path, opt = {}) {
+  const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/" + path, { ...opt, headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" } });
+  if (r.status === 401) { token = null; $("#tools").hidden = true; $("#connect").hidden = false; throw new Error("Session expirée : reconnectez‑vous."); }
+  if (!r.ok) { const j = await r.json().catch(() => ({})); const er = new Error(j.error?.message || "Erreur " + r.status); er.status = r.status; throw er; }
+  const t = await r.text(); return t ? JSON.parse(t) : null;
+}
+async function listIds(q, max = 100000, onProg) {
+  let ids = [], pt = "";
+  do {
+    const d = (await api("messages?maxResults=500&q=" + encodeURIComponent(q) + (pt ? "&pageToken=" + pt : ""))) || {};
+    ids.push(...(d.messages || []).map(m => m.id)); pt = d.nextPageToken;
+    onProg && onProg(ids.length, d.resultSizeEstimate, !!pt && ids.length < max); // 2e valeur : estimation Gmail du total ; 3e : y a-t-il une page suivante
+  } while (pt && ids.length < max);
+  return ids.slice(0, max);
+}
+async function trash(ids, onProg) {
+  for (let i = 0; i < ids.length; i += 500) { // lots de 500 (limite Gmail : 1 000) pour une progression plus fine
+    await api("messages/batchModify", { method: "POST", body: JSON.stringify({ ids: ids.slice(i, i + 500), addLabelIds: ["TRASH"], removeLabelIds: ["INBOX"] }) });
+    onProg && onProg(Math.min(ids.length, i + 500));
+  }
+}
+async function trashIds(ids, label, logName) {
+  try {
+    if (!ids.length) return msg("Aucun message à supprimer."), 0;
+    if (!confirm("Mettre " + fmt(ids.length) + " message(s) à la corbeille ?\n" + label + "\n\nIls resteront récupérables dans la corbeille Gmail pendant 30 jours ; l’espace de stockage n’est libéré qu’à leur suppression définitive (après 30 jours, ou si vous videz la corbeille).")) return msg(""), 0;
+    msg("Déplacement vers la corbeille…");
+    const pT = Prog.start("Mise à la corbeille", ids.length);
+    try { await trash(ids, n => pT.set(n)); } finally { pT.done(); }
+    msg("✅ " + fmt(ids.length) + " message(s) mis à la corbeille.");
+    await logOp(logName || label, ids.length);
+    return ids.length;
+  } catch (e) { msg(e.message, 1); return 0; }
+}
+async function trashQuery(q, label, logName) {
+  let ids;
+  const p = Prog.start("Recherche des messages à supprimer", 1);
+  try {
+    msg("Recherche des messages…");
+    ids = await listIds(q, 100000, (n, est, more) => { msg(n + " messages trouvés…"); p.set(n, Math.max(est || 0, more ? n + 500 : n)); });
+  } catch (e) { msg(e.message, 1); return 0; } finally { p.done(); }
+  return await trashIds(ids, label, logName);
+}
+
+const GH = "gmailMenage.gh";
+let acct = ""; // adresse du compte Gmail connecté : toutes les données propres à un compte sont rangées sous son nom
+const AK = b => "gmailMenage." + b + "|" + acct; // clé localStorage propre au compte
+const rdJ = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } };
+const wrJ = (b, v) => { if (!acct) return; try { localStorage.setItem(AK(b), JSON.stringify(v)); } catch (e) {} };
+let logData = { snaps: [], ops: [] };
+const DISTFILE = "menage-gmail-repartition.json", LOGFILE = "menage-gmail-log.json"; // fichiers du journal GitHub, dans le dossier du compte
+let distData = { points: [] };
+const saveDist = () => wrJ("dist", distData);
+function mergeDist(x) { const m = new Map(); [...distData.points, ...((x && x.points) || [])].forEach(e => m.set(e.t, e)); distData.points = [...m.values()].sort((a, b) => a.t - b.t); }
+const saveLog = () => wrJ("log", logData);
+const ghCfg = () => { try { return JSON.parse(localStorage.getItem(GH) || "null"); } catch (e) { return null; } };
+function ghStatus(t, err) { const e = $("#ghStatus"); e.textContent = t; e.style.color = err ? "var(--dg)" : ""; if (err) $("#ghDet").open = true; }
+function ghInit() {
+  const c = ghCfg(); $("#ghRepo").value = c?.repo || "";
+  $("#ghTok").placeholder = c ? "Jeton enregistré (laisser vide pour le conserver)" : "github_pat_…";
+  ghStatus(c ? "Journal GitHub activé : " + c.repo + (acct ? " (dossier « " + acct + "/ » pour ce compte)" : "") : "Journal GitHub non configuré (le journal reste local).");
+}
+function mergeLog(x) {
+  const u = (A, B, k) => { const m = new Map(); [...A, ...B].forEach(e => m.set(k(e), e)); return [...m.values()].sort((a, b) => a.t - b.t); };
+  logData.snaps = u(logData.snaps, x.snaps || [], e => e.t);
+  logData.ops = u(logData.ops, x.ops || [], e => e.t + e.name);
+}
+let ghTimer = null, ghLegacyAns = null;
+const GHDELAY = 10 * 60 * 1000;
+function ghSyncSoon() { // une seule écriture GitHub, 10 min après la dernière activité ; les données sont déjà dans le navigateur
+  if (!ghCfg()) return;
+  try { localStorage.setItem(AK("ghDirty"), "1"); } catch (e) {}
+  clearTimeout(ghTimer); ghTimer = setTimeout(() => { ghTimer = null; ghSync(true); }, GHDELAY);
+}
+async function ghSync(push, ui) {
+  const c = ghCfg(); if (!c || !acct) return;
+  const H = { Authorization: "Bearer " + c.token, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+  const dir = acct + "/", files = [ // [chemin dans le dossier du compte, fusion, données, sauvegarde locale, fichier principal ?]
+    [dir + LOGFILE, mergeLog, () => logData, saveLog, true],
+    [dir + DISTFILE, mergeDist, () => distData, saveDist, false]
+  ];
+  let legacyMerged = false;
+  const P = ui ? Prog.start("Synchronisation GitHub", files.length * (push ? 2 : 1)) : null; let k = 0; // barre affichée seulement quand on clique sur le bouton
+  try {
+    for (const [path, merge, data, save, main] of files) {
+      const url = "https://api.github.com/repos/" + c.repo + "/contents/" + path;
+      let sha, found = false; const r = await fetch(url, { headers: H }); P && P.set(++k);
+      if (r.ok) {
+        const j = await r.json(); sha = j.sha; found = true;
+        try { merge(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(j.content.replace(/\n/g, "")), ch => ch.charCodeAt(0))))); } catch (e) {}
+      } else if (r.status === 404) { // fichier absent du dossier du compte : reprise éventuelle de l’ancien fichier à la racine du dépôt (avant la v1.75)
+        let lg = null; try { if (!localStorage.getItem("gmailMenage.ghLegacyDone")) { const lr = await fetch("https://api.github.com/repos/" + c.repo + "/contents/" + path.slice(dir.length), { headers: H }); if (lr.ok) lg = await lr.json(); } } catch (e) {}
+        if (lg) {
+          if (ghLegacyAns == null) ghLegacyAns = confirm("Le journal GitHub existant, à la racine de « " + c.repo + " » (avant la v1.75), appartient-il au compte " + acct + " ?\n\nOK : son contenu est repris et copié dans le dossier « " + acct + "/ » (l’ancien fichier n’est pas supprimé).\nAnnuler : il est ignoré pour ce compte.");
+          if (ghLegacyAns) { try { merge(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(lg.content.replace(/\n/g, "")), ch => ch.charCodeAt(0))))); legacyMerged = true; } catch (e) {} }
+        }
+      } else if (r.status !== 404) throw new Error(r.status === 401 ? "jeton refusé" : r.status === 403 ? "accès refusé (permission « Contents : Read and write » ?)" : "erreur " + r.status);
+      save();
+      if (!push || (!found && !main && !data().points.length)) continue; // rien à créer pour le fichier de répartition tant qu'il n'a aucune mesure
+      let b = ""; new TextEncoder().encode(JSON.stringify(data(), null, 1)).forEach(x => b += String.fromCharCode(x));
+      const w = await fetch(url, { method: "PUT", headers: H, body: JSON.stringify({ message: (main ? "Journal Ménage Gmail " : "Répartition Ménage Gmail ") + new Date().toISOString(), content: btoa(b), sha }) });
+      P && P.set(++k);
+      if (!w.ok) throw new Error((await w.json().catch(() => ({}))).message || "erreur " + w.status);
+    }
+    if (legacyMerged) { try { localStorage.setItem("gmailMenage.ghLegacyDone", acct); if (!push) localStorage.setItem(AK("ghDirty"), "1"); } catch (e) {} } // l’ancien journal racine est rattaché à ce compte : il sera envoyé dans son dossier
+    if (!push) return ghStatus("Journal GitHub lu : " + c.repo);
+    try { localStorage.removeItem(AK("ghDirty")); } catch (e) {}
+    ghStatus("✅ Journal synchronisé avec " + c.repo + " (" + new Date().toLocaleTimeString("fr-FR") + ")");
+  } catch (e) { ghStatus("❌ GitHub : " + e.message, 1); } finally { P && P.done(); }
+}
+$("#ghSave").onclick = async () => {
+  const repo = $("#ghRepo").value.trim(), tok = $("#ghTok").value.trim(), token = tok || ghCfg()?.token;
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return ghStatus("Dépôt invalide : format attendu pseudo/nom-du-depot", 1);
+  if (!token) return ghStatus("Collez votre jeton GitHub.", 1);
+  try { localStorage.setItem(GH, JSON.stringify({ repo, token, path: "menage-gmail-log.json" })); } catch (e) { return ghStatus("localStorage indisponible.", 1); }
+  $("#ghTok").value = ""; ghInit(); await ghSync(true, true);
+};
+// ===== PROVISOIRE : reproduit l’historique de index.html (dépôt public) dans le dépôt du journal : un commit par version, fichier index-history.html, branche « index-history » =====
+const HISTK = "gmailMenage.histRepo", HISTSRC = "index.html", HISTFILE = "index-history.html", HISTBRANCH = "index-history";
+(() => {
+  let v = ""; try { v = localStorage.getItem(HISTK) || ""; } catch (e) {}
+  if (!v && /\.github\.io$/.test(location.hostname)) { const o = location.hostname.split(".")[0], r = location.pathname.split("/")[1]; v = o + "/" + (r && !/\.html?$/i.test(r) ? r : o + ".github.io"); } // déduit de l’adresse GitHub Pages
+  $("#histRepo").value = v;
+})();
+function histStatus(t, err) { const e = $("#histStatus"); e.textContent = t; e.style.color = err ? "var(--dg)" : ""; }
+const b64 = text => { const by = new TextEncoder().encode(text); let b = ""; for (let k = 0; k < by.length; k += 0x8000) b += String.fromCharCode.apply(null, by.subarray(k, k + 0x8000)); return btoa(b); };
+let histRunning = false;
+$("#histBtn").onclick = async () => {
+  if (histRunning) return;
+  const src = $("#histRepo").value.trim(), c = ghCfg();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(src)) return histStatus("Dépôt public invalide : format attendu pseudo/nom-du-depot", 1);
+  if (!c) return histStatus("Journal GitHub non configuré : connectez-vous à Gmail, renseignez le dépôt privé (ex. pseudo/gmail-privatedata) et le jeton dans « Journal GitHub », puis revenez ici (la configuration est mémorisée).", 1);
+  try { localStorage.setItem(HISTK, src); } catch (e) {}
+  if (!confirm("Reproduire l’historique de « " + HISTSRC + " » de " + src + " dans " + c.repo + " ?\n\nUn commit par version, fichier « " + HISTFILE + " », ajouté à la suite de la branche principale (les autres fichiers ne sont pas modifiés).")) return;
+  histRunning = true; $("#histBtn").disabled = true; histStatus("⏳ Lecture de la liste des commits…");
+  const P = Prog.start("Historique de " + HISTSRC, 1000), ghH = { Accept: "application/vnd.github+json" };
+  const ghGet = async (url, extra) => { // lecture du dépôt public : avec le jeton (limite plus large), sans lui si GitHub le refuse
+    let r = await fetch(url, { headers: { ...ghH, ...extra, Authorization: "Bearer " + c.token } });
+    if (r.status === 401 || r.status === 403 || r.status === 404) { const r2 = await fetch(url, { headers: { ...ghH, ...extra } }); if (r2.ok || r.status === 401) r = r2; }
+    return r;
+  };
+  const W = { Authorization: "Bearer " + c.token, Accept: "application/vnd.github+json", "Content-Type": "application/json" }, API = "https://api.github.com/repos/" + c.repo + "/git/";
+  let lastW = 0;
+  const gw = async (method, path, body, label) => { // écriture dans le dépôt privé : ≤ ~75 requêtes/min (limite GitHub : 80), nouvelle tentative si limite de débit
+    for (let t = 1; ; t++) {
+      const wait = 800 - (Date.now() - lastW); if (wait > 0) await sleep(wait); lastW = Date.now();
+      let r; try { r = await fetch(API + path, { method, headers: W, body: body ? JSON.stringify(body) : undefined }); }
+      catch (e) { if (t <= 6) { histStatus("⏳ Connexion à GitHub interrompue : nouvelle tentative " + t + " / 6 (" + (label || "") + ")…"); await sleep(3000 * t); continue; } throw e; }
+      if (r.ok) return await r.json();
+      if (r.status >= 500 && t <= 6) { histStatus("⏳ GitHub a répondu par une erreur " + r.status + " : nouvelle tentative " + t + " / 6 (" + (label || "") + ")…"); await sleep(3000 * t); continue; } // erreur serveur passagère
+      const j = await r.json().catch(() => ({})), m = j.message || "erreur " + r.status;
+      if ((r.status === 403 || r.status === 429) && /rate|abuse|secondary|retry/i.test(m + " " + (r.headers.get("retry-after") || "")) && t <= 6) {
+        const sec = Math.min(120, +(r.headers.get("retry-after") || 0) || 65); for (let k = sec; k > 0; k--) { histStatus("⏸ Limite de débit GitHub : reprise dans " + k + " s (" + (label || "") + ")…"); await sleep(1000); } continue;
+      }
+      if (r.status === 422 && /parent|sha|tree|not exist|not found|invalid/i.test(m) && t <= 8) { histStatus("⏳ GitHub n’a pas encore enregistré l’objet précédent : nouvelle tentative " + t + " / 8 (" + (label || "") + ")…"); await sleep(1500 * t); continue; } // délai de propagation de GitHub
+      const err = new Error(r.status === 401 ? "jeton refusé" : r.status === 404 ? "dépôt " + c.repo + " introuvable ou jeton sans accès" : r.status === 409 ? "le dépôt " + c.repo + " est vide : créez-y d’abord un fichier (par ex. un README, ou synchronisez le journal) puis relancez" : r.status === 403 ? "accès refusé (permission « Contents : Read and write » ?) — " + m : m); err.status = r.status; throw err;
+    }
+  };
+  try {
+    const commits = [];
+    for (let pg = 1; pg <= 100; pg++) {
+      const r = await ghGet("https://api.github.com/repos/" + src + "/commits?path=" + encodeURIComponent(HISTSRC) + "&per_page=100&page=" + pg);
+      if (!r.ok) throw new Error("liste des commits : " + (r.status === 404 ? "dépôt ou fichier introuvable (" + src + ")" : r.status === 403 ? "accès refusé ou limite GitHub atteinte, réessayez plus tard" : "erreur " + r.status));
+      const a = await r.json(); commits.push(...a); histStatus("⏳ Commits trouvés : " + fmt(commits.length) + "…");
+      if (a.length < 100) break;
+    }
+    if (!commits.length) throw new Error("aucun commit trouvé pour " + HISTSRC + " dans " + src);
+    commits.reverse(); // du plus ancien au plus récent
+    const N = commits.length; P.set(30, 1000);
+    let ri; for (let t = 1; ; t++) { ri = await fetch("https://api.github.com/repos/" + c.repo, { headers: W }); if (ri.status < 500 || t >= 5) break; await sleep(3000 * t); }
+    if (!ri.ok) throw new Error("dépôt " + c.repo + " : " + (ri.status === 401 ? "jeton refusé" : ri.status === 404 ? "introuvable ou jeton sans accès" : "erreur " + ri.status));
+    const br = (await ri.json()).default_branch, headSha = (await gw("GET", "ref/heads/" + br)).object.sha, headTree = (await gw("GET", "commits/" + headSha)).tree.sha;
+    const keyOf = (m, d) => d + "|" + m, have = new Set(); // contrôle anti-doublon : l’historique est-il déjà dans le dépôt du journal ?
+    for (let pg = 1; pg <= 20; pg++) {
+      const r = await fetch("https://api.github.com/repos/" + c.repo + "/commits?sha=" + encodeURIComponent(br) + "&path=" + encodeURIComponent(HISTFILE) + "&per_page=100&page=" + pg, { headers: W });
+      if (!r.ok) break; const a = await r.json(); a.forEach(x => have.add(keyOf(x.commit.message, x.commit.author && x.commit.author.date))); if (a.length < 100) break;
+    }
+    const c0 = commits[0].commit, c1 = commits[N - 1].commit;
+    if (have.has(keyOf(c0.message, c0.author.date)) && have.has(keyOf(c1.message, c1.author.date))) throw new Error("l’historique semble déjà reproduit dans " + c.repo + " (branche " + br + ") : aucun commit ajouté, pour éviter les doublons");
+    const codes = new Array(N); let next = 0, done = 0;
+    const getCode = async sha => {
+      let last = "";
+      for (let t = 1; t <= 3; t++) {
+        try { const r = await fetch("https://raw.githubusercontent.com/" + src + "/" + sha + "/" + HISTSRC); if (r.ok) return await r.text(); last = "erreur " + r.status; } catch (e) { last = e.message; }
+        try { const r = await ghGet("https://api.github.com/repos/" + src + "/contents/" + HISTSRC + "?ref=" + sha, { Accept: "application/vnd.github.raw+json" }); if (r.ok) return await r.text(); last = "erreur " + r.status; } catch (e) { last = e.message; }
+        await sleep(1000 * t);
+      }
+      throw new Error("version " + sha.slice(0, 7) + " illisible (" + last + ")");
+    };
+    await Promise.all(Array.from({ length: 4 }, async () => {
+      while (next < N) { const i = next++; codes[i] = await getCode(commits[i].sha); P.set(30 + 270 * (++done) / N, 1000); histStatus("⏳ Versions lues : " + fmt(done) + " / " + fmt(N) + "…"); }
+    }));
+    // création des commits : blob → tree (arbre du commit précédent, avec ce seul fichier remplacé) → commit (parent = commit précédent), même message, auteur et date que l’original
+    let parent = headSha, baseTree = headTree;
+    for (let i = 0; i < N; i++) {
+      const cm = commits[i], ci = cm.commit, who = o => ({ name: (o && o.name) || "?", email: (o && o.email) || "noreply@example.com", date: (o && o.date) || new Date().toISOString() });
+      const lbl = "version " + (i + 1) + " / " + N;
+      histStatus("⏳ Création du commit " + (i + 1) + " / " + N + "…");
+      const bl = await gw("POST", "blobs", { content: b64(codes[i]), encoding: "base64" }, lbl);
+      const tr = await gw("POST", "trees", { base_tree: baseTree, tree: [{ path: HISTFILE, mode: "100644", type: "blob", sha: bl.sha }] }, lbl);
+      const cmt = await gw("POST", "commits", { message: ci.message || "", tree: tr.sha, parents: [parent], author: who(ci.author), committer: who(ci.committer || ci.author) }, lbl);
+      parent = cmt.sha; baseTree = tr.sha; P.set(300 + 650 * (i + 1) / N, 1000);
+    }
+    histStatus("⏳ Mise à jour de la branche « " + br + " »…");
+    try { await gw("PATCH", "refs/heads/" + br, { sha: parent, force: false }); }
+    catch (e) { if (e.status === 422) throw new Error("la branche « " + br + " » a changé pendant l’opération (par exemple une synchronisation du journal) : aucun commit n’a été publié, relancez le bouton"); throw e; }
+    P.set(1000, 1000);
+    const ok = "✅ " + N + " commit(s) ajouté(s) à la branche « " + br + " » de " + c.repo + " (fichier " + HISTFILE + "). Sur GitHub : « History » du fichier.";
+    histStatus(ok); msg(ok);
+  } catch (e) { histStatus("❌ " + e.message, 1); msg("Reproduction de l’historique impossible : " + e.message, 1); }
+  finally { P.done(); histRunning = false; $("#histBtn").disabled = false; }
+};
+$("#ghClear").onclick = () => { try { localStorage.removeItem(GH); } catch (e) {} ghInit(); ghStatus("Jeton supprimé de ce navigateur."); };
+
+function logSnap(total, trash, spam) {
+  const l = logData.snaps[logData.snaps.length - 1];
+  if (l && Date.now() - l.t < 300000 && l.total === total && l.trash === trash) return;
+  logData.snaps.push({ t: Date.now(), total, trash, spam }); saveLog();
+}
+async function logOp(name, n) {
+  try {
+    const [p, t, s] = await Promise.all([api("profile"), api("labels/TRASH"), api("labels/SPAM")]);
+    const now = Date.now();
+    logData.ops.push({ t: now, name, n, total: p.messagesTotal, trash: t.messagesTotal });
+    logData.snaps.push({ t: now, total: p.messagesTotal, trash: t.messagesTotal, spam: s.messagesTotal });
+    saveLog(); loadStats(); ghSyncSoon();
+  } catch (e) { msg("Journal : " + e.message, 1); }
+}
+function drawChart() {
+  const S = logData.snaps, box = $("#chartBox");
+  if (S.length < 2) { box.innerHTML = "<p class='mut'>Pas assez de données : la courbe se construit à chaque connexion et à chaque grand nettoyage. Revenez après un prochain nettoyage.</p>"; $("#chartLegend").textContent = ""; return; }
+  const W = 700, H = 320, L = 70, R = 15, T = 15, B = 40;
+  const pts = S.map(e => ({ t: e.t, a: e.total - (e.trash || 0), b: e.total, x: !!e.exact }));
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+  const ymax = Math.max(...pts.map(p => p.b)), ymin = Math.min(...pts.map(p => p.a)), pad = (ymax - ymin) * .1 || 1;
+  const y0 = Math.max(0, ymin - pad), y1 = ymax + pad;
+  const X = t => L + (t - t0) / ((t1 - t0) || 1) * (W - L - R), Y = v => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  const line = (k, c, w) => `<polyline fill="none" stroke="${c}" stroke-width="${w}" points="${pts.map(p => X(p.t).toFixed(1) + "," + Y(p[k]).toFixed(1)).join(" ")}"/>`;
+  const d = t => new Date(t).toLocaleDateString("fr-FR");
+  const ticks = [0, .25, .5, .75, 1].map(f => { const v = y0 + f * (y1 - y0); return `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" opacity=".12"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="currentColor">${fmt(Math.round(v))}</text>`; }).join("");
+  const opAt = new Map(logData.ops.map(o => [o.t, o]));
+  const dots = pts.map(p => { const o = opAt.get(p.t); return `<circle cx="${X(p.t)}" cy="${Y(p.a)}" r="${p.x ? 6.5 : 4.5}" fill="var(--l1)"${p.x ? ' stroke="var(--tx)" stroke-width="2"' : ''}><title>${esc(new Date(p.t).toLocaleString("fr-FR") + (o ? " : suppression « " + o.name + " », " + fmt(o.n) + " message(s)" : (p.x ? " : comptage exact" : " : connexion")) + " — " + fmt(p.a) + " hors corbeille")}</title></circle>`; }).join("");
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;color:var(--tx)">${ticks}${line("b", "var(--l2)", 3.5)}${line("a", "var(--l1)", 4)}${dots}<text x="${L}" y="${H - 12}" font-size="11" fill="currentColor">${d(t0)}</text><text x="${W - R}" y="${H - 12}" font-size="11" text-anchor="end" fill="currentColor">${d(t1)}</text></svg>`;
+  $("#chartLegend").innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><i style="display:inline-block;width:34px;height:5px;border-radius:3px;background:var(--l1)"></i>messages hors corbeille</span><span style="display:inline-flex;align-items:center;gap:6px;margin-right:16px"><i style="display:inline-block;width:34px;height:5px;border-radius:3px;background:var(--l2)"></i>total (corbeille incluse)</span><span class="mut">Chaque point = une connexion, une suppression ou un comptage exact (survolez-le pour le détail).</span>`;
+}
+let exactRunning = false;
+async function apiRetry(path) { // quelques nouvelles tentatives si Gmail limite le débit
+  for (let i = 0; ; i++) {
+    try { return await api(path); }
+    catch (e) { if (i >= 3 || !(e.status === 429 || e.status >= 500 || /rate|quota/i.test(e.message))) throw e; await sleep(1500 * (i + 1)); }
+  }
+}
+async function exactCount(q, onProg, inc = true) { // nombre réel de messages d’une recherche (pagination complète ; inc = spam et corbeille inclus)
+  let n = 0, pt = "";
+  do {
+    const d = (await apiRetry("messages?maxResults=500" + (inc ? "&includeSpamTrash=true" : "") + "&fields=messages/id,nextPageToken,resultSizeEstimate&q=" + encodeURIComponent(q) + (pt ? "&pageToken=" + pt : ""))) || {}; // réponse vide quand rien ne correspond
+    n += (d.messages || []).length; pt = d.nextPageToken; onProg && onProg(n, d.resultSizeEstimate, !!pt);
+  } while (pt);
+  return n;
+}
+$("#exactBtn").onclick = async () => {
+  if (exactRunning) return;
+  exactRunning = true; const btn = $("#exactBtn"), box = $("#exactBox"); btn.disabled = true;
+  const pE = Prog.start("Comptage exact des messages", 1);
+  try {
+    box.textContent = "⏳ Lecture des compteurs Gmail…";
+    const [p, t, sp] = await Promise.all([api("profile"), api("labels/TRASH"), api("labels/SPAM")]);
+    const cnt = await countDist(c => { box.textContent = "⏳ Comptage exact : " + DIST_CATS.map(x => x.name + " " + fmt(c[x.k] || 0)).join(" · "); }, pE);
+    const ex = { trash: cnt.trash || 0, spam: cnt.spam || 0, rest: DIST_CATS.reduce((a, x) => a + (x.k === "trash" || x.k === "spam" ? 0 : cnt[x.k] || 0), 0) };
+    const exTotal = ex.trash + ex.spam + ex.rest, exOut = ex.spam + ex.rest;
+    const cTotal = p.messagesTotal || 0, cTrash = t.messagesTotal || 0, cOut = cTotal - cTrash;
+    const rows = [["Total (corbeille incluse)", cTotal, exTotal], ["Corbeille", cTrash, ex.trash], ["Hors corbeille (courbe bleue)", cOut, exOut]];
+    const sg = n => (n > 0 ? "+" : "") + fmt(n);
+    const maxD = Math.max(...rows.map(r => Math.abs(r[2] - r[1]))), ok = maxD <= Math.max(25, exTotal * 0.002);
+    box.innerHTML = `<table style="border-collapse:collapse;width:100%;font-size:.93rem"><tr class="mut"><th style="text-align:left;font-weight:500"></th><th style="text-align:right;font-weight:500">Compteur Gmail</th><th style="text-align:right;font-weight:500">Comptage exact</th><th style="text-align:right;font-weight:500">Écart</th></tr>`
+      + rows.map(r => `<tr style="border-top:1px solid var(--bd)"><td>${r[0]}</td><td style="text-align:right">${fmt(r[1])}</td><td style="text-align:right"><b>${fmt(r[2])}</b></td><td style="text-align:right">${r[2] === r[1] ? "0" : sg(r[2] - r[1])}</td></tr>`).join("")
+      + `</table><p class="mut" style="margin:6px 0 0">Dont spam : ${fmt(ex.spam)} (compté hors corbeille, comme dans la courbe).</p>`
+      + (ok ? `<div class="okb">✅ Les compteurs de Gmail correspondent au comptage réel : les points récents de la courbe sont fiables.</div>`
+             : `<div class="note">⚠️ Les compteurs de Gmail s’écartent du comptage réel (jusqu’à ${fmt(maxD)} messages). Les points de la courbe calculés avec ces compteurs peuvent être faux : un saut brutal de la courbe bleue peut venir d’un compteur décalé et non de vrais messages déplacés.</div>`)
+      + `<p class="mut" style="margin:6px 0 0">Ce comptage décrit l’état d’aujourd’hui ; il ne peut pas rejouer le passé. Il est ajouté à la courbe comme point de référence (gros point cerclé) et à l’onglet « Répartition par boîte » comme dernière mesure.</p>`;
+    logData.snaps.push({ t: Date.now(), total: exTotal, trash: ex.trash, spam: ex.spam, exact: true });
+    pushDistPoint(cnt, logData.snaps[logData.snaps.length - 1].t); // même comptage = dernière mesure de « Répartition par boîte »
+    saveLog(); ghSyncSoon(); drawChart(); loadStats();
+  } catch (e) { box.textContent = "Comptage impossible : " + e.message; }
+  pE.done(); exactRunning = false; btn.disabled = false;
+};
+// ===== Graphique « Répartition par boîte » : une mesure exacte ajoutée à chaque affichage =====
+const DIST_CATS = [ // catégories exclusives (un message n'est compté qu'une fois), de bas en haut du graphique
+  { k: "inbox", name: "Réception", q: "in:inbox", inc: false, c: "#1a73e8" },
+  { k: "arch", name: "Archivés", d: "ni en réception, ni envoyés, ni brouillons, ni dans « Autres » (le contenu de « Tous les messages » une fois la réception retirée)", q: "-in:inbox -in:sent -in:drafts -in:chats -in:scheduled -is:snoozed", inc: false, c: "#34a853" },
+  { k: "misc", name: "Autres", d: "hors réception, envoyés et brouillons : conversations de chat, messages programmés et messages mis en attente (snooze)", q: "(in:chats OR in:scheduled OR is:snoozed) -in:inbox -in:sent -in:drafts", inc: false, c: "#12b5cb" },
+  { k: "sent", name: "Envoyés", d: "messages envoyés qui ne sont pas aussi en réception", q: "in:sent -in:inbox", inc: false, c: "#f9ab00" },
+  { k: "drafts", name: "Brouillons", q: "in:drafts -in:inbox -in:sent", inc: false, c: "#a142f4" },
+  { k: "spam", name: "Spam", q: "in:spam", inc: true, c: "#e8710a" },
+  { k: "trash", name: "Corbeille", q: "in:trash", inc: true, c: "#d93025" }
+];
+const fmtDT = t => new Date(t).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const distTot = p => DIST_CATS.reduce((a, c) => a + (p[c.k] || 0), 0);
+function drawDist() {
+  const box = $("#distBox"), leg = $("#distLegend"), A = distData.points, P = A.slice(-30);
+  if (!P.length) { box.innerHTML = "<p class='mut'>Aucune mesure pour l’instant : le premier comptage est en cours…</p>"; leg.innerHTML = ""; return; }
+  const W = 700, H = 320, L = 70, R = 15, T = 15, B = 46;
+  const ymax = Math.max(1, ...P.map(distTot)) * 1.05, Y = v => T + (1 - v / ymax) * (H - T - B);
+  const ticks = [0, .25, .5, .75, 1].map(f => { const v = f * ymax; return `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="currentColor" opacity=".12"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="currentColor">${fmt(Math.round(v))}</text>`; }).join("");
+  const slot = (W - L - R) / P.length, bw = Math.min(64, slot * .72);
+  let cols = "", labs = "";
+  P.forEach((p, i) => {
+    const x = L + slot * i + (slot - bw) / 2, tt = distTot(p); let acc = 0;
+    DIST_CATS.forEach(c => {
+      const v = p[c.k] || 0; if (!v) return;
+      const y1 = Y(acc + v), h = Y(acc) - y1; acc += v;
+      cols += `<rect x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(h, .5).toFixed(1)}" fill="${c.c}"><title>${esc(fmtDT(p.t) + " — " + c.name + " : " + fmt(v) + " (" + (tt ? Math.round(v * 100 / tt) : 0) + " %)")}</title></rect>`;
+    });
+    if (P.length <= 8 || i === 0 || i === P.length - 1) {
+      const d = new Date(p.t), cx = (L + slot * (i + .5)).toFixed(1);
+      labs += `<text x="${cx}" y="${H - 26}" font-size="11" text-anchor="middle" fill="currentColor">${d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}</text><text x="${cx}" y="${H - 12}" font-size="11" text-anchor="middle" fill="currentColor">${d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</text>`;
+    }
+  });
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;color:var(--tx)">${ticks}${cols}${labs}</svg>`;
+  const last = A[A.length - 1], prev = A.length > 1 ? A[A.length - 2] : null, T0 = distTot(last), sg = n => n === 0 ? "=" : (n > 0 ? "+" : "−") + fmt(Math.abs(n));
+  leg.innerHTML = `<table class="dist"><tr><th></th><th style="text-align:left">Mesure du ${esc(fmtDT(last.t))}</th><th>Messages</th><th>Part</th><th>${prev ? "Écart depuis le " + esc(fmtDT(prev.t)) : ""}</th></tr>`
+    + DIST_CATS.map(c => { const v = last[c.k] || 0; return `<tr><td><i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${c.c}"></i></td><td>${c.name}${c.d ? `<br><span class="mut" style="font-size:.82rem">${esc(c.d)}</span>` : ""}</td><td class="r"><b>${fmt(v)}</b></td><td class="r mut">${T0 ? Math.round(v * 100 / T0) : 0} %</td><td class="r mut">${prev ? sg(v - (prev[c.k] || 0)) : ""}</td></tr>`; }).join("")
+    + `<tr><td></td><td><b>Total</b></td><td class="r"><b>${fmt(T0)}</b></td><td class="r mut">100 %</td><td class="r mut">${prev ? sg(T0 - distTot(prev)) : ""}</td></tr></table>`
+    + `<p class="mut" style="margin:6px 0 0">${fmt(A.length)} mesure(s) enregistrée(s)${A.length > P.length ? " (les " + P.length + " dernières sont affichées)" : ""}. Chaque colonne = un comptage exact ; survolez un segment pour le détail.</p>`;
+}
+function countDist(onProg, ph) { // comptage exact de chaque catégorie de la répartition (en parallèle) ; onProg(cnt) à chaque page lue ; ph = barre de progression
+  const cnt = {}, mx = {}, sum = o => Object.values(o).reduce((a, b) => a + b, 0);
+  return Promise.all(DIST_CATS.map(async c => { cnt[c.k] = await exactCount(c.q, (n, est, more) => { cnt[c.k] = n; mx[c.k] = Math.max(est || 0, more ? n + 500 : n); onProg && onProg(cnt); if (ph) ph.set(sum(cnt), sum(mx)); }, c.inc); })).then(() => cnt);
+}
+function pushDistPoint(cnt, t) { // ajoute une mesure à « Répartition par boîte » (fichier dédié) à partir d'un comptage exact
+  const pt = { t: t || Date.now() }; DIST_CATS.forEach(c => pt[c.k] = cnt[c.k] || 0);
+  distData.points.push(pt); saveDist(); ghSyncSoon();
+  if (!$("#panel2").hidden) drawDist();
+  return pt;
+}
+let distRunning = false;
+async function refreshDist() { // comptage exact par catégorie, puis ajout d'une mesure au fichier dédié
+  if (distRunning) return;
+  $("#distAsk").hidden = true; $("#distIdle").hidden = true;
+  distRunning = true; const st = $("#distStatus"), btn = $("#distBtn"); btn.disabled = true; st.className = "mut";
+  const pD = Prog.start("Comptage exact par boîte", 1);
+  try {
+    const lineOf = cnt => "⏳ Comptage exact en cours… " + DIST_CATS.map(c => c.name + " " + fmt(cnt[c.k] || 0)).join(" · ");
+    st.textContent = lineOf({});
+    const prof = api("profile").catch(() => null);
+    const pt = pushDistPoint(await countDist(cnt => { st.textContent = lineOf(cnt); }, pD));
+    const sum = distTot(pt), p = await prof, cTot = p && p.messagesTotal, bad = cTot != null && Math.abs(cTot - sum) > Math.max(25, sum * 0.002);
+    st.textContent = "✅ Mesure ajoutée (" + fmt(sum) + " messages comptés)." + (bad ? " ⚠️ Le compteur de Gmail indique " + fmt(cTot) + " (écart de " + fmt(Math.abs(cTot - sum)) + ") : les compteurs de Gmail sont décalés, le comptage exact fait foi." : "");
+  } catch (e) { st.className = "err"; st.textContent = "Comptage impossible : " + e.message; }
+  pD.done(); distRunning = false; btn.disabled = false; $("#distIdle").hidden = false;
+  if (!$("#panel2").hidden) drawDist();
+}
+function askDist() { // à chaque affichage de l'onglet : proposer (et non imposer) un nouveau comptage
+  if (distRunning) return;
+  const A = distData.points; $("#distIdle").hidden = true;
+  if (!A.length) { refreshDist(); return; } // aucune mesure : rien à afficher, on compte directement
+  const last = A[A.length - 1], min = (Date.now() - last.t) / 60000;
+  if (min < 15) { // mesure toute récente (par ex. comptage exact fait dans « Évolution du total ») : inutile de redemander
+    $("#distAsk").hidden = true; $("#distIdle").hidden = false;
+    $("#distStatus").textContent = "✅ Données à jour : dernière mesure du " + fmtDT(last.t) + " (" + (min < 1 ? "il y a moins d’une minute" : "il y a " + Math.round(min) + " min") + ").";
+    return;
+  }
+  $("#distStatus").textContent = "";
+  $("#distAskInfo").textContent = "Dernière mesure : " + fmtDT(A[A.length - 1].t) + ". Un comptage exact dure environ 1 minute pour 60 000 messages et ajoute une mesure à la courbe.";
+  $("#distAsk").hidden = false;
+}
+function showTab(n) {
+  [1, 2].forEach(i => { $("#tab" + i).setAttribute("aria-selected", String(i === n)); $("#panel" + i).hidden = i !== n; });
+  if (n === 1) drawChart(); else { drawDist(); askDist(); }
+}
+$("#tab1").onclick = () => { if ($("#panel1").hidden) showTab(1); };
+$("#tab2").onclick = () => { if ($("#panel2").hidden) showTab(2); };
+$("#distBtn").onclick = refreshDist;
+$("#distYes").onclick = refreshDist;
+$("#distNo").onclick = () => { $("#distAsk").hidden = true; $("#distIdle").hidden = false; };
+$("#chartBtn").onclick = () => { showTab(1); $("#chartDlg").showModal(); };
+$("#chartClose").onclick = () => $("#chartDlg").close();
+
+async function loadStats() {
+  const box = $("#stats"), wasOpen = !!($("#othDet") && $("#othDet").open);
+  try {
+    const [p, ...L] = await Promise.all([api("profile"), ...["INBOX", "UNREAD", "SPAM", "TRASH"].map(l => api("labels/" + l))]);
+    logSnap(p.messagesTotal, L[3].messagesTotal, L[2].messagesTotal);
+    const tot = p.messagesTotal || 0, inbox = L[0].messagesTotal || 0, spam = L[2].messagesTotal || 0, tr = L[3].messagesTotal || 0;
+    const other = Math.max(0, tot - inbox - spam - tr), row = (t, n, x) => `<div class="row"><span>${t}</span><span class="cnt">${fmt(n)}</span></div>${x || ""}`;
+    box.innerHTML = `<div class="row"><b>Total (tous les messages)</b><span class="cnt">${fmt(tot)}</span></div>`
+      + row("Boîte de réception", inbox)
+      + row("Autres emplacements <span class='mut'>(ni réception, ni spam, ni corbeille)</span>", other,
+        `<details id="othDet" style="margin:0 0 8px"><summary class="mut" style="cursor:pointer">Détail des autres emplacements</summary><div id="othBox" class="mut" style="margin:6px 0 0 14px">Ouvrez pour calculer…</div></details>`)
+      + row("Spam", spam) + row("Corbeille", tr)
+      + `<p class="mut" style="margin:8px 0 0">Les quatre lignes ci-dessus s’additionnent exactement pour donner le total. Pour information (non cumulable, car des mails lus ou non lus sont répartis partout) : <b>${fmt(L[1].messagesTotal)}</b> non lus, tous dossiers.</p>`
+      + `<p class="mut">Compte : ${esc(p.emailAddress)}</p>`;
+    let loaded = false;
+    const det = $("#othDet"), go = () => { if (det.open && !loaded) { loaded = true; loadOther(other); } };
+    det.addEventListener("toggle", go); if (wasOpen) { det.open = true; go(); }
+  } catch (e) { box.textContent = "Statistiques indisponibles."; msg("Erreur Gmail : " + e.message, 1); }
+}
+async function loadOther(other) { // répartition exacte des « autres emplacements » : envoyés + brouillons + archivés = autres
+  const b = $("#othBox"), pO = Prog.start("Détail des autres emplacements", 6); let step = 0;
+  try {
+    const cnt = async q => { const n = (await listIds(q, 100000, (k, est, more) => pO.set(step + Math.min(0.95, k / Math.max(1, est || 0, more ? k + 500 : k))))).length; pO.set(++step); return n; };
+    b.textContent = "⏳ Comptage des messages envoyés…";
+    const sent = await cnt("in:sent -in:inbox");
+    b.textContent = "⏳ Comptage des brouillons…";
+    const dr = await cnt("in:drafts -in:inbox -in:sent");
+    const ARCH_Q = "-in:inbox -in:sent -in:drafts", ARCH_T = [["Promotions", "category:promotions"], ["Réseaux sociaux", "category:social"], ["Notifications", "category:updates"], ["Forums", "category:forums"]], at = [];
+    for (const [nom, c] of ARCH_T) { b.textContent = "⏳ Comptage des archivés : " + nom.toLowerCase() + "…"; at.push(await cnt(ARCH_Q + " " + c)); }
+    const arch = other - sent - dr, lk = q => `<a class="btn sec" target="_blank" rel="noopener" href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent(q)}" style="padding:3px 10px;margin:0">Voir dans Gmail</a>`;
+    const r = (t, n, q) => `<div class="row" style="padding:5px 0"><span>${t}</span><span><span class="cnt">${fmt(n)}</span> ${lk(q)}</span></div>`;
+    b.innerHTML = r("Envoyés <span class='mut'>(hors réception)</span>", sent, "in:sent -in:inbox") + r("Brouillons", dr, "in:drafts")
+      + r("Archivés <span class='mut'>(ni envoyés, ni brouillons : tout ce qui est hors réception, spam et corbeille)</span>", Math.max(0, arch), ARCH_Q)
+      + `<div style="margin-left:18px">` + ARCH_T.map(([nom, c], i) => r(nom, at[i], ARCH_Q + " " + c)).join("")
+      + r("Principal et sans catégorie <span class='mut'>(le reste des archivés, chats et messages programmés compris)</span>", Math.max(0, arch - at.reduce((a, n) => a + n, 0)), ARCH_Q + " -category:promotions -category:social -category:updates -category:forums") + `</div>`
+      + `<p class="mut" style="margin:6px 0 0">Les archivés sont des mails sans le libellé « Boîte de réception » : archivés à la main, ou classés d’office par un filtre. Dans Gmail ils ne sont visibles que dans « Tous les messages », ou dans leurs propres libellés (dossiers personnalisés) s’ils en ont un.</p>`
+      + (arch < 0 ? `<p class="mut">⚠️ Écart de ${fmt(-arch)} : certains messages cumulent plusieurs emplacements.</p>` : "");
+  } catch (e) { b.textContent = "Détail indisponible : " + e.message; } finally { pO.done(); }
+}
+
+const GUARD_KEY = "gmailMenage.guards";
+const GUARDS = [["gStar", "is:starred", "suivis d’une étoile", true], ["gImp", "is:important", "marqués importants", true], ["gLab", "has:userlabels", "ayant un libellé personnel", false], ["gAtt", "has:attachment", "avec pièce jointe", false]];
+(() => { let v = null; try { v = JSON.parse(localStorage.getItem(GUARD_KEY) || "null"); } catch (e) {} GUARDS.forEach(g => { $("#" + g[0]).checked = v && g[0] in v ? !!v[g[0]] : g[3]; }); })();
+const guardQ = (b = "") => GUARDS.filter(g => $("#" + g[0]).checked && !b.includes(g[1])).map(g => " -" + g[1]).join(""); // termes à ajouter à une requête (sans doublon)
+const guardTxt = () => GUARDS.filter(g => $("#" + g[0]).checked).map(g => g[2]).join(", ");
+const guardNote = () => guardTxt() ? " ; épargnés : " + guardTxt() : "";
+const senderQ = (email, scope) => { const b = "from:" + email + " " + scope + " -in:sent -in:drafts"; return b + guardQ(b); }; // requête de « Tous » (périmètre + ancienneté + garde-fous)
+const wrCache = new Map(); // adresse → « vous lui avez déjà écrit » (true/false), vérifié à la demande
+const confirmExtra = s => (guardTxt() ? "\nÉpargnés automatiquement : " + guardTxt() + "." : "") + (wrCache.get(s.email) ? "\n⚠️ Vous avez déjà écrit à cette adresse." : "");
+const PRESETS = [ // [titre, requête de base, ancienneté optionnelle (case à cocher) ou null]
+  ["Promotions", "category:promotions", "1y"],
+  ["Réseaux sociaux", "category:social", "1y"],
+  ["Notifications (onglet Notifications : mises à jour)", "category:updates", "2y"],
+  ["Forums", "category:forums", "2y"],
+  ["Messages de plus de 10 Mo", "larger:10M", "1y", false], // 4e valeur : case décochée par défaut
+  ["Messages de plus de 20 Mo", "larger:20M", "1y", false],
+  ["Lus et vieux de plus de 5 ans", "is:read older_than:5y -is:starred -is:important", null]
+];
+const ageTxt = a => a.endsWith("m") ? "de plus de " + parseInt(a) + " mois" : a === "1y" ? "de plus d’un an" : "de plus de " + parseInt(a) + " ans";
+let presetRows = [];
+const PSZ = "gmailMenage.presetSizes"; // tailles des nettoyages rapides, mémorisées par requête Gmail : { requête : { z (octets), n (mails), zn (mails dont la taille est connue), t (date) } }
+let presetSizes = {};
+const savePresetSizes = () => { if (!acct) return; try { localStorage.setItem(AK("presetSizes"), JSON.stringify(presetSizes)); } catch (e) { msg("Sauvegarde locale de la taille impossible (stockage plein ?).", 1); } };
+async function sizeOfMsg(id) { // taille estimée d’un mail (octets), avec nouvelles tentatives si Gmail limite le débit
+  for (let t = 1; ; t++) {
+    try { return await api("messages/" + id + "?format=minimal&fields=sizeEstimate"); }
+    catch (e) { if (e.status === 404) return { sizeEstimate: 0 }; if (t >= 6 || !(e.status === 429 || (e.status === 403 && /rate|quota/i.test(e.message)))) throw e; await sleep(1500 * t); }
+  }
+}
+function refreshPresets() { presetRows.forEach(([r]) => r._upd && r._upd()); if (presetRows.length) countPresets(presetRows); } // après un changement de garde-fou
+function buildPresets() {
+  const box = $("#presets"); box.innerHTML = ""; const rows = [];
+  PRESETS.forEach(([t, base, age, on]) => {
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = `<div class="who"><b>${esc(t)}</b>${age ? `<label class="mut" style="display:block;cursor:pointer"><input type="checkbox" ${on === false ? "" : "checked"}> ${esc(ageTxt(age))}</label>` : ""}<span class="mut qtxt"></span><span class="mut sz" style="display:block"></span></div><span class="cnt">…</span>
+      <span class="tip" data-z="1"><button class="btn sec" type="button">💾 Taille</button></span>
+      <span class="tip" data-v="1"><a class="btn sec" target="_blank" rel="noopener">Voir</a></span>
+      <span class="tip" data-c="1"><button class="btn dg" type="button">Corbeille</button></span>`;
+    const chk = r.querySelector("input"), q = () => { const b = base + (age && chk.checked ? " older_than:" + age : ""); return b + guardQ(b); }, vTip = r.querySelector("[data-v]"), cTip = r.querySelector("[data-c]");
+    const szEl = r.querySelector(".sz"), zTip = r.querySelector("[data-z]"), zBtn = zTip.querySelector("button");
+    const showSz = () => { // taille mémorisée pour la requête actuelle (elle change avec la case d’ancienneté et les garde-fous)
+      const z = presetSizes[q()];
+      if (!z) { szEl.textContent = "💾 Taille : non calculée"; return; }
+      const chg = r._n != null && r._n >= 0 && r._n !== z.n;
+      szEl.textContent = !z.n ? "💾 Aucun mail lors du calcul du " + fmtDT(z.t)
+        : "💾 " + (z.zn < z.n ? "au moins " + fmtSize(z.z) + " (connue pour " + fmt(z.zn) + " mails sur " + fmt(z.n) + ")" : fmtSize(z.z) + " pour " + fmt(z.n) + " mail(s)") + " · calculé le " + fmtDT(z.t)
+        + (chg ? " · ⚠️ " + fmt(r._n) + " mail(s) aujourd’hui : recalculez" : "");
+    };
+    r._sz = showSz;
+    zTip.dataset.tip = "Lit la taille de chaque mail correspondant à la requête (une requête légère par mail, environ 30 par seconde) et mémorise le total dans ce navigateur. Aucun mail n’est modifié.";
+    const upd = () => {
+      showSz(); r.querySelector(".qtxt").textContent = q(); r.querySelector("a").href = "https://mail.google.com/mail/u/0/#search/" + encodeURIComponent(q());
+      vTip.dataset.tip = "Ouvre Gmail sur la recherche « " + q() + " » : ce sont les mêmes mails que ceux comptés à gauche. Rien n’est supprimé.";
+    };
+    r._upd = upd; r._t = t; upd();
+    if (chk) chk.onchange = () => { upd(); const tok = r._tok = (r._tok || 0) + 1, pc = Prog.start("Comptage : " + t, 1); countRow(r, q, () => r._tok === tok, pc).finally(() => pc.done()); };
+    // Bulle de « Corbeille » en deux temps : explication immédiate, puis nombre exact (dernier comptage de la ligne)
+    const cBase = () => "Met à la corbeille les mails correspondant à la requête Gmail « " + q() + " ». Une confirmation avec le nombre exact vous sera demandée avant ; ils restent récupérables 30 jours dans la corbeille Gmail.";
+    const cNum = () => r._n === -1 ? cBase() + " Comptage indisponible."
+      : r._n == null ? null
+      : r._n === 0 ? "Aucun mail ne correspond actuellement à « " + q() + " » : rien ne sera mis à la corbeille."
+      : "Mettra à la corbeille " + fmt(r._n) + (r._plus || "") + " mail(s) correspondant à « " + q() + " » (dernier comptage ; il est refait au clic, avant la confirmation). Récupérables 30 jours dans la corbeille Gmail.";
+    let ctm = null, cpoll = null;
+    const cStop = () => { clearTimeout(ctm); clearInterval(cpoll); };
+    const cShow = () => { const x = cNum(); cTip.dataset.tip = x == null ? cBase() + " ⏳ Calcul du nombre de mails…" : x; return x != null; };
+    cTip.dataset.tip = cBase();
+    cTip.addEventListener("mouseenter", () => { cStop(); cTip.dataset.tip = cBase(); ctm = setTimeout(() => { if (!cShow()) cpoll = setInterval(() => { if (cShow()) clearInterval(cpoll); }, 500); }, 300); });
+    cTip.addEventListener("mouseleave", cStop);
+    zBtn.onclick = async () => {
+      if (running) return msg(sizeRun ? "Un calcul de taille est déjà en cours : attendez sa fin." : "Une analyse est en cours : attendez sa fin.", 1);
+      const qq = q(); running = true; sizeRun = true; zBtn.disabled = true;
+      const pZ = Prog.start("Taille : " + t, 1000); // 1re moitié : liste des mails ; 2e moitié : lecture de la taille de chacun
+      try {
+        msg("Recherche des mails de « " + t + " »…");
+        const ids = await listIds(qq, 100000, (n, est, more) => { const mx = Math.max(est || 0, more ? n + 500 : n); pZ.set(500 * Math.min(0.95, n / Math.max(1, mx)), 1000); });
+        pZ.set(500, 1000);
+        if (ids.length > 3000 && !confirm("Lire la taille de " + fmt(ids.length) + " mail(s) ?\nUne requête légère par mail, environ " + Math.max(1, Math.ceil(ids.length / 30 / 60)) + " min. Aucun mail n’est modifié.")) { msg(""); return; }
+        let next = 0, z = 0, zn = 0, failed = 0, expired = false, done = 0; const t0 = Date.now();
+        await Promise.all(Array.from({ length: 10 }, async () => {
+          while (next < ids.length && !expired) {
+            const i = next++;
+            try { const m = await sizeOfMsg(ids[i]); z += +m.sizeEstimate || 0; zn++; } catch (e) { if (/expir/.test(e.message)) expired = true; else failed++; }
+            pZ.set(500 + 500 * (++done) / ids.length, 1000);
+            if (i % 50 === 0) { const rate = Math.max(1, i / ((Date.now() - t0) / 1000)); msg("⏳ Taille de « " + t + " » : " + fmt(i) + " / " + fmt(ids.length) + " – reste ≈ " + Math.ceil((ids.length - i) / rate / 60) + " min"); }
+          }
+        }));
+        if (expired) return msg("Session Google expirée : reconnectez-vous puis relancez le calcul.", 1);
+        presetSizes[qq] = { z, n: ids.length, zn, t: Date.now() }; savePresetSizes(); showSz();
+        msg(failed ? "Calcul terminé, mais " + fmt(failed) + " mail(s) illisible(s) : taille partielle." : "✅ Taille de « " + t + " » : " + (ids.length ? fmtSize(z) + " pour " + fmt(ids.length) + " mail(s)." : "aucun mail."), !!failed);
+      } catch (e) { msg(e.message, 1); }
+      finally { pZ.done(); running = false; sizeRun = false; zBtn.disabled = false; }
+    };
+    showSz();
+    r.querySelector("button.dg").onclick = async e => {
+      const bt = e.currentTarget; bt.disabled = true; const q0 = q();
+      const nom = t + (age ? (chk.checked ? " (" + ageTxt(age) + ")" : " (sans condition d’ancienneté)") : "");
+      const n = await trashQuery(q(), nom + "\nRequête Gmail : " + q() + (guardTxt() ? "\nÉpargnés automatiquement : " + guardTxt() + "." : ""), nom); // le nombre exact est recalculé ici, puis confirmé par l’utilisateur
+      bt.disabled = false; if (n) { r.querySelector(".cnt").textContent = "0"; r._n = 0; r._plus = ""; delete presetSizes[q0]; savePresetSizes(); showSz(); }
+    };
+    box.appendChild(r);
+    rows.push([r, q]);
+  });
+  presetRows = rows; countPresets(rows);
+}
+let presetRun = 0;
+async function countRow(r, qf, still, ph) { // comptage exact d'une ligne (liste complète des identifiants) ; still() = ce comptage est-il encore d'actualité ?
+  const cell = r.querySelector(".cnt"), q = qf();
+  cell.textContent = "⏳"; r._n = null; r._plus = "";
+  try {
+    const prog = (n, est, more) => { if (still()) cell.textContent = "⏳ " + fmt(n); if (ph) ph.set(n, Math.max(est || 0, more ? n + 500 : n)); };
+    const all = await listIds(q, 100000, prog);
+    if (!still()) return;
+    const plus = all.length >= 100000 ? "+" : "";
+    cell.textContent = fmt(all.length) + plus; r._n = all.length; r._plus = plus; if (r._sz) r._sz(); // rappelle si le nombre de mails a changé depuis le calcul de la taille
+  } catch (e) { cell.textContent = "?"; r._n = -1; msg("Erreur Gmail : " + e.message, 1); }
+}
+async function countPresets(rows) { // un nettoyage après l'autre
+  const run = ++presetRun, P = Prog.start("Comptage des nettoyages rapides", rows.length);
+  rows.forEach(([r]) => r.querySelector(".cnt").textContent = "⏳");
+  try {
+    for (let i = 0; i < rows.length; i++) {
+      const [r, qf] = rows[i];
+      if (run !== presetRun) return;
+      const tok = r._tok = (r._tok || 0) + 1;
+      P.set(i, rows.length, "Comptage : " + (r._t || "nettoyages rapides"));
+      await countRow(r, qf, () => run === presetRun && r._tok === tok, { set: (n, mx) => P.set(i + Math.min(0.95, n / Math.max(1, mx)), rows.length) });
+    }
+  } finally { P.done(); }
+}
+
+let scans = [], scanData = null, stopFlag = false, running = false, sizeRun = false, lastExpired = false, activeBtn = null;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = n => (n || 0).toLocaleString("fr-FR");
+const monthYear = t => new Date(t).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+function saveScan() { if (!acct) return; try { localStorage.setItem(AK("scans"), JSON.stringify(scans)); } catch (e) { msg("Sauvegarde locale impossible (stockage plein ? supprimez d’anciennes analyses).", 1); } }
+// ===== Périmètres de la liste déroulante (valeur = fragment de requête Gmail) =====
+const SC_INBOX = "in:inbox", SC_ALL = "-in:spam -in:trash";
+const SCOPE_GROUPS = [
+  ["Général", [
+    [SC_INBOX, "Boîte de réception", "boîte de réception"],
+    [SC_ALL, "Tous les messages", "tous les messages (hors spam et corbeille)"],
+    ["-in:inbox -in:spam -in:trash -in:sent -in:drafts", "Archivés (ni réception, ni envoyés, ni brouillons)", "archivés (hors réception, envoyés, brouillons, spam et corbeille)"],
+    ["is:unread", "Non lus (tous dossiers)", "messages non lus"]
+  ]],
+  ["Onglets Gmail", [
+    ["category:promotions", "Promotions", "onglet Promotions"],
+    ["category:social", "Réseaux sociaux", "onglet Réseaux sociaux"],
+    ["category:updates", "Notifications", "onglet Notifications"],
+    ["category:forums", "Forums", "onglet Forums"],
+    ["category:primary", "Principal", "onglet Principal"]
+  ]]
+];
+let scopeLabels = []; // libellés personnalisés : { name, q, n }
+const scopeNames = new Map(); SCOPE_GROUPS.forEach(g => g[1].forEach(o => scopeNames.set(o[0], o[2])));
+const labelQ = n => "label:" + n.replace(/[\s/]+/g, "-"); // syntaxe de recherche Gmail : espaces et « / » deviennent « - »
+const splitScope = q => { const m = String(q).match(/^(.*?)(?: older_than:(\d+[ym]))?(?: larger:(\d+)M)?$/); return m ? [m[1], m[2] || "", +m[3] || 0] : [q, "", 0]; }; // [périmètre de base, limite d’âge éventuelle, taille minimale en Mo (0 = aucune)]
+const curSize = () => Math.max(0, Math.floor(+$("#scopeSize").value || 0));
+const curScope = () => $("#scope").value + ($("#scopeAge").value ? " older_than:" + $("#scopeAge").value : "") + (curSize() ? " larger:" + curSize() + "M" : ""); // périmètre + ancienneté minimale + taille minimale choisis
+const scopeBase = q => { const b = splitScope(q)[0]; return scopeNames.get(b) || (b.startsWith("label:") ? "libellé « " + b.slice(6) + " »" : b); };
+const sizeTxt = q => { const z = splitScope(q)[2]; return z ? "de plus de " + fmt(z) + " Mo" : ""; };
+const sizeNote = q => { const z = sizeTxt(q); return z ? "📏 FILTRE SUR LA TAILLE : uniquement les mails " + z : ""; };
+const scopeName = q => { const a = splitScope(q)[1], z = sizeTxt(q); return scopeBase(q) + (a ? " — uniquement les mails " + ageTxt(a) : "") + (z ? " — uniquement les mails " + z : ""); };
+const ageNote = q => { const a = splitScope(q)[1]; return a ? "✂️ uniquement les mails " + ageTxt(a) : "✅ tous les mails, quel que soit leur âge"; };
+function ensureScope(v) { // sélectionne v ; l’ajoute au besoin (analyse enregistrée dont le périmètre n’est plus proposé)
+  const sel = $("#scope"); if (!v) return;
+  if (![...sel.options].some(o => o.value === v)) {
+    let g = sel.querySelector("optgroup[data-extra]");
+    if (!g) { g = document.createElement("optgroup"); g.label = "Analyses enregistrées"; g.dataset.extra = "1"; sel.appendChild(g); }
+    const o = document.createElement("option"); o.value = v; o.textContent = scopeName(v); g.appendChild(o);
+  }
+  sel.value = v;
+}
+function buildScopes() {
+  const sel = $("#scope"), cur = sel.value; sel.innerHTML = "";
+  const group = (label, items) => {
+    const g = document.createElement("optgroup"); g.label = label;
+    items.forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; g.appendChild(o); });
+    sel.appendChild(g);
+  };
+  SCOPE_GROUPS.forEach(([l, items]) => group(l, items));
+  if (scopeLabels.length) group("Mes libellés", scopeLabels.map(l => [l.q, l.name + (l.n != null ? " (" + fmt(l.n) + ")" : "")]));
+  if (cur) ensureScope(cur);
+}
+async function loadScopeLabels() { // libellés personnalisés de la boîte Gmail
+  const pL = Prog.start("Chargement des libellés", 1);
+  try {
+    const d = await api("labels");
+    scopeLabels = (d.labels || []).filter(l => l.type === "user").map(l => ({ id: l.id, name: l.name, q: labelQ(l.name), n: null }))
+      .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+    scopeLabels.forEach(l => scopeNames.set(l.q, "libellé « " + l.name + " »"));
+    buildScopes(); pL.set(1, 1 + Math.ceil(scopeLabels.length / 8));
+    if (!scopeLabels.length || scopeLabels.length > 200) return;
+    for (let i = 0; i < scopeLabels.length; i += 8) { // nombre de messages par libellé, par petits lots
+      await Promise.all(scopeLabels.slice(i, i + 8).map(async l => { try { l.n = (await api("labels/" + encodeURIComponent(l.id))).messagesTotal; } catch (e) {} }));
+      pL.set(1 + Math.ceil((i + 8) / 8));
+    }
+    buildScopes();
+  } catch (e) { /* les périmètres fixes restent disponibles */ } finally { pL.done(); }
+}
+buildScopes();
+const scanLabel = d => "Rangs " + fmt(d.from) + " – " + (d.to ? fmt(d.to) : "fin") + " · " + scopeBase(d.scope) + " (" + ageNote(d.scope) + ")" + (sizeTxt(d.scope) ? " · 📏 mails " + sizeTxt(d.scope) + " uniquement" : "");
+function fillForm(d) {
+  if (!d || !d.from) return;
+  const [sb, sa, sz] = splitScope(d.scope); ensureScope(sb); $("#scopeAge").value = sa; $("#scopeSize").value = sz || 0; $("#rFrom").value = d.from; $("#rTo").value = d.to || ""; $("#rCount").value = d.to ? d.to - d.from + 1 : ""; updateEst();
+}
+function restoreScan() {
+  try { scans = rdJ(AK("scans")) || []; } catch (e) { scans = []; }
+  try { // ancien format : une seule analyse
+    const o = rdJ(AK("scan"));
+    if (o && o.map) { if (!o.from) { o.from = 1; o.to = o.limit || 0; } o.id = o.id || o.date || Date.now(); scans.push(o); localStorage.removeItem(AK("scan")); saveScan(); }
+  } catch (e) {}
+  scanData = scans[scans.length - 1] || null;
+  renderScans();
+  if (scanData) { fillForm(scanData); showScan(scanData); }
+}
+let cumulView = false;
+$("#viewTxt").addEventListener("click", e => { const b = e.target.closest("[data-calc]"); if (b) computeSizes(cumulView ? scans : (scanData ? [scanData] : []), b); });
+function setBanner(html) { const b = $("#viewTitle"); $("#viewTxt").innerHTML = html || ""; b.hidden = !html; }
+let senderMode = "scan", totCache = new Map(), totRun = 0; // « scan » = mails scannés ; « total » = tous les mails de l'expéditeur dans le périmètre
+const totKey = (email, scope) => scope + guardQ() + "|" + email;
+function updMode() { document.querySelectorAll("#viewMode [data-m]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === senderMode))); }
+document.querySelectorAll("#viewMode [data-m]").forEach(b => b.onclick = () => {
+  if (b.dataset.m === senderMode) return;
+  senderMode = b.dataset.m; totRun++; updMode(); $("#modeInfo").textContent = "";
+  if (senderMode === "total") ensureTotals(); else renderSenders();
+});
+async function ensureTotals() { // calcule (une fois, puis en cache) le nombre total de mails de chaque expéditeur de la liste
+  if (senderMode !== "total") return;
+  const run = ++totRun, scope = curSend.scope, todo = curSend.list.filter(s => !totCache.has(totKey(s.email, scope))), st = $("#modeInfo");
+  if (!todo.length) { st.textContent = ""; return renderSenders(); }
+  let i = 0, done = 0; st.textContent = "⏳ Calcul des totaux : 0 / " + fmt(todo.length) + "…";
+  const pT = Prog.start("Calcul des totaux par expéditeur", todo.length);
+  try {
+    await Promise.all(Array.from({ length: 6 }, async () => {
+      while (i < todo.length && run === totRun) {
+        const s = todo[i++], n = await exactCount(senderQ(s.email, scope), null, false);
+        if (run !== totRun) return;
+        totCache.set(totKey(s.email, scope), n); done++; pT.set(done);
+        if (done % 10 === 0) st.textContent = "⏳ Calcul des totaux : " + fmt(done) + " / " + fmt(todo.length) + "…";
+      }
+    }));
+  } catch (e) {
+    if (run === totRun) { totRun++; senderMode = "scan"; updMode(); st.textContent = ""; msg("Calcul des totaux impossible : " + e.message, 1); renderSenders(); }
+    return;
+  } finally { pT.done(); }
+  if (run === totRun) { st.textContent = ""; renderSenders(); }
+}
+const sizeOf = src => { let z = 0, zn = 0, n = 0; src.forEach(d => Object.values(d.map).forEach(o => { z += o.z || 0; zn += o.zn || 0; n += o.n; })); return { z, zn, n }; };
+const sizeBit = d => { const t = sizeOf([d]); return t.zn && t.zn >= t.n ? " · 💾 " + fmtSize(t.z) : ""; };
+const canCompute = src => src.some(d => Object.values(d.map).some(o => o.ids && o.ids.length === o.n && !hasSize(o)));
+function sizeLine(src) { // taille totale des mails scannés, avec un bouton de calcul si elle n’a pas été mémorisée
+  const t = sizeOf(src), txt = !t.zn ? "non mémorisée (analyse enregistrée avant l’ajout de la taille)" : t.zn >= t.n ? "<b>" + fmtSize(t.z) + "</b> pour " + fmt(t.n) + " mails" : "au moins <b>" + fmtSize(t.z) + "</b> (taille connue pour " + fmt(t.zn) + " mails sur " + fmt(t.n) + ")";
+  return "<br>💾 Taille des mails scannés : " + txt + (canCompute(src) ? ' <button type="button" class="chip" data-calc="1" title="Lit la taille de chaque mail enregistré dans l’analyse (une requête légère par mail), sans refaire l’analyse">Calculer la taille</button>' : "");
+}
+async function computeSizes(src, btn) {
+  if (running) return msg(sizeRun ? "Le calcul de la taille est déjà en cours : attendez sa fin." : "Une analyse est en cours : attendez sa fin pour calculer la taille.", 1);
+  const cand = []; src.forEach(d => Object.values(d.map).forEach(o => { if (o.ids && o.ids.length === o.n && !hasSize(o)) o.ids.forEach(id => cand.push([o, id])); }));
+  if (!cand.length) return msg("Rien à calculer : la taille est déjà connue ou les identifiants des mails ne sont pas mémorisés (analyse à refaire).");
+  if (!confirm("Lire la taille de " + fmt(cand.length) + " mail(s) de cette analyse ?\nUne requête légère par mail, environ " + Math.max(1, Math.ceil(cand.length / 30 / 60)) + " min. Aucun mail n’est modifié.")) return;
+  const todo = cand; new Set(todo.map(x => x[0])).forEach(o => { o.z = 0; o.zn = 0; });
+  running = true; sizeRun = true; btn.disabled = true; let next = 0, expired = false, failed = 0; const t0 = Date.now();
+  const pZ = Prog.start("Calcul de la taille des mails", todo.length); let doneN = 0;
+  const fetchSize = async id => { for (let t = 1; ; t++) { try { return await api("messages/" + id + "?format=minimal&fields=sizeEstimate"); } catch (e) { if (e.status === 404) return { sizeEstimate: 0 }; if (t >= 6 || !(e.status === 429 || (e.status === 403 && /rate|quota/i.test(e.message)))) throw e; await sleep(1500 * t); } } };
+  await Promise.all(Array.from({ length: 10 }, async () => {
+    while (next < todo.length && !expired) {
+      const i = next++, [o, id] = todo[i];
+      try { const m = await fetchSize(id); o.z += +m.sizeEstimate || 0; o.zn++; } catch (e) { if (/expir/.test(e.message)) expired = true; else failed++; }
+      pZ.set(++doneN);
+      if (i % 50 === 0) { const rate = Math.max(1, i / ((Date.now() - t0) / 1000)); msg("⏳ Calcul de la taille : " + fmt(i) + " / " + fmt(todo.length) + " – reste ≈ " + Math.ceil((todo.length - i) / rate / 60) + " min"); }
+      if (i && i % 1000 === 0) saveScan();
+    }
+  }));
+  running = false; sizeRun = false; saveScan(); pZ.done();
+  msg(expired ? "Session Google expirée : reconnectez-vous puis relancez « Calculer la taille »." : failed ? "Calcul terminé, mais " + fmt(failed) + " mail(s) illisible(s) : taille partielle." : "✅ Taille calculée pour " + fmt(todo.length) + " mail(s).", expired || failed ? 1 : 0);
+  if (cumulView) showCumul(); else if (scanData) showScan(scanData);
+}
+function bannerScan(d) {
+  const S = Object.values(d.map), cnt = S.reduce((a, o) => a + o.n, 0), fd = t => new Date(t).toLocaleDateString("fr-FR");
+  const withIds = S.length && S.every(o => o.ids && o.ids.length === o.n);
+  const rest = [
+    d.dmin ? "mails du " + fd(d.dmin) + " au " + fd(d.dmax) : "",
+    fmt(cnt) + " messages comptés sur " + fmt(d.total) + " · " + fmt(S.length) + " expéditeurs",
+    d.done < d.total ? "⚠️ incomplète (" + fmt(d.done) + " / " + fmt(d.total) + " analysés)" : "",
+    d.failIds && d.failIds.length ? "⚠️ " + fmt(d.failIds.length) + " illisible(s)" : "",
+    withIds ? "" : "boutons « Scannés » indisponibles (analyse à refaire)",
+    d.date ? "analyse du " + new Date(d.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : ""
+  ].filter(Boolean).join(" · ");
+  return "<b>📊 Analyse affichée</b> · <b>" + esc(scanLabel(d)) + "</b>" + (sizeTxt(d.scope) ? "<br><b>" + esc(sizeNote(d.scope)) + "</b> — ce n’est pas une analyse de toute la boîte : les mails plus petits sont exclus (non comptés, non supprimés par « Scannés » ni « Tous »). Les rangs s’entendent parmi ces seuls mails." : "") + "<br>" + esc(rest) + sizeLine([d]);
+}
+function showScan(d) {
+  scanData = d; cumulView = false;
+  setBanner(bannerScan(d)); renderScans();
+  showSenders(Object.values(d.map).sort((a, b) => b.n - a.n), d.scope);
+}
+let ovlSet = new Set(); // identifiants des analyses qui se chevauchent (cadre jaune dans la liste)
+function cumulOverlaps() { // exact si les identifiants des mails sont mémorisés, sinon d’après le périmètre et les rangs
+  const info = scans.map(d => { const S = Object.values(d.map); let set = null; if (S.every(o => o.ids && o.ids.length === o.n)) { set = new Set(); S.forEach(o => o.ids.forEach(id => set.add(id))); } return { d, set }; });
+  const pairs = [], ids = new Set();
+  for (let i = 0; i < info.length; i++) for (let j = i + 1; j < info.length; j++) {
+    const A = info[i], B = info[j]; let n = 0, exact = false, hit = false;
+    if (A.set && B.set) { exact = true; const [sm, bg] = A.set.size <= B.set.size ? [A.set, B.set] : [B.set, A.set]; sm.forEach(id => { if (bg.has(id)) n++; }); hit = n > 0; }
+    else hit = A.d.scope === B.d.scope && A.d.from <= (B.d.to || Infinity) && B.d.from <= (A.d.to || Infinity);
+    if (hit) { pairs.push({ a: A.d, b: B.d, n, exact }); ids.add(A.d.id); ids.add(B.d.id); }
+  }
+  return { pairs, ids };
+}
+function showCumul() {
+  const m = {};
+  scans.forEach(d => Object.values(d.map).forEach(o => {
+    const x = m[o.email] || (m[o.email] = { ...o, n: 0, ids: o.ids ? [] : null, u: 0, s: 0, cat: null, t0: 0, t1: 0, nStats: 0, z: 0, zn: 0 });
+    x.n += o.n; x.ids = (x.ids && o.ids) ? x.ids.concat(o.ids) : null;
+    if (o.zn) { x.z += o.z || 0; x.zn += o.zn; }
+    if (o.t0) { // statistiques disponibles pour cette analyse (non lus, favoris, onglets, période)
+      x.u += o.u || 0; x.s += o.s || 0; x.nStats += o.n; x.t0 = x.t0 ? Math.min(x.t0, o.t0) : o.t0; x.t1 = Math.max(x.t1, o.t1 || 0);
+      Object.entries(o.cat || {}).forEach(([k, v]) => { x.cat = x.cat || {}; x.cat[k] = (x.cat[k] || 0) + v; });
+    }
+    if (!x.unsub && o.unsub) x.unsub = o.unsub;
+  }));
+  const ov = cumulOverlaps(); ovlSet = ov.ids;
+  const lab = d => esc(scanLabel(d)) + (d.date ? " (" + new Date(d.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) + ")" : "");
+  const keepOpen = cumulView && !!$("#ovDet") && $("#ovDet").open; // l’état déplié est conservé quand on réaffiche le cumul
+  const ovMsg = ov.pairs.length
+    ? "<details id=\"ovDet\"" + (keepOpen ? " open" : "") + " style=\"margin-top:4px\"><summary style=\"cursor:pointer\"><b>⚠️ " + ov.pairs.length + " chevauchement(s)</b></summary>"
+      + "<div style=\"margin-top:4px\">Certains mails sont comptés deux fois dans ce cumul. Les boutons « Voir » encadrés en jaune dans la liste des analyses sont ceux des analyses concernées :<ul style=\"margin:4px 0 0 18px;padding:0\">"
+      + ov.pairs.map(p => "<li>" + lab(p.a) + " ⟷ " + lab(p.b) + " — " + (p.exact ? fmt(p.n) + " mail(s) en commun" : "plages qui se chevauchent (identifiants non mémorisés : estimation)") + "</li>").join("") + "</ul></div></details>"
+    : "<br>✅ Aucun chevauchement : chaque mail n’est compté qu’une fois.";
+  cumulView = true; renderScans();
+  setBanner("<b>📊 Cumul de " + scans.length + " analyses</b>" + ovMsg + (scans.some(d => sizeTxt(d.scope)) ? "<br><b>📏 Analyses filtrées sur la taille dans ce cumul :</b> " + esc([...new Set(scans.filter(d => sizeTxt(d.scope)).map(d => "mails " + sizeTxt(d.scope)))].join(", ")) + " (les autres analyses n’ont pas de filtre de taille)." : "") + "<br>Le périmètre, l’ancienneté et la taille minimale de « Tous » sont ceux des réglages ci-dessus." + sizeLine(scans));
+  showSenders(Object.values(m).sort((a, b) => b.n - a.n), curScope());
+}
+function purgeSender(email, set) { // set = identifiants supprimés ; null = tout l'expéditeur
+  scans.forEach(x => {
+    const o = x.map[email]; if (!o) return;
+    if (!set) { delete x.map[email]; return; }
+    if (!o.ids) return;
+    const n0 = o.n; o.ids = o.ids.filter(i => !set.has(i)); o.n = o.ids.length;
+    if (o.z && n0) { o.z = Math.round(o.z * o.n / n0); o.zn = Math.round((o.zn || 0) * o.n / n0); } // estimation proportionnelle
+    if (!o.n) delete x.map[email];
+  });
+  saveScan(); renderScans();
+  curSend.list = curSend.list.filter(x => x.email !== email);
+}
+function renderScans() {
+  const box = $("#scanList"); box.innerHTML = scans.length ? "" : "<p class='mut'>Aucune analyse enregistrée.</p>";
+  [...scans].reverse().forEach(d => {
+    const inc = d.done < d.total, r = document.createElement("div"); r.className = "row"; if (!cumulView && d === scanData) r.classList.add("sel");
+    r.innerHTML = `<div class="who"><b>${esc(scanLabel(d))}</b><span class="mut">${d.dmin ? esc(monthYear(d.dmin) + " → " + monthYear(d.dmax)) + " · " : ""}${fmt(d.done)} / ${fmt(d.total)} messages · ${fmt(Object.keys(d.map).length)} expéditeurs${sizeBit(d)}${inc ? " · incomplète" : ""}${d.failIds && d.failIds.length ? " · ⚠️ " + fmt(d.failIds.length) + " illisible(s)" : ""}</span></div>
+      <span><button class="btn sec" data-a="view" type="button">Voir</button><span class="tip" data-tip="Copie dans le presse-papiers une ligne par expéditeur (nombre, adresse, nom, période, non lus, favoris, catégories, désinscription) pour la coller dans une conversation"><button class="btn sec" data-a="copy" type="button">📋 Résumé</button></span>${inc ? '<button class="btn" data-a="resume" type="button">Reprendre</button>' : ""}<button class="btn sec" data-a="del" type="button">🗑</button></span>`;
+    if (cumulView && ovlSet.has(d.id)) r.querySelector('[data-a="view"]').classList.add("ovl"); // analyse qui chevauche une autre
+    r.onclick = e => {
+      const a = e.target.dataset && e.target.dataset.a; if (!a) return;
+      if (a === "copy") { const S = Object.keys(d.map).length; copyText(scanSummary(d)).then(ok => msg(ok ? "📋 Résumé copié (" + fmt(S) + " expéditeurs, une ligne chacun) : collez-le dans la conversation." : "Copie impossible : autorisez l’accès au presse-papiers du navigateur.", !ok)); return; }
+      if (running && !(sizeRun && a === "view")) return msg(sizeRun ? "Le calcul de la taille des mails est en cours : attendez sa fin (vous pouvez seulement consulter une analyse avec « Voir »)." : "Une analyse est en cours : arrêtez-la d’abord.", 1);
+      if (a === "view") { fillForm(d); showScan(d); }
+      if (a === "resume") { activeBtn = e.target; e.target.disabled = true; e.target.textContent = "⏳ Reprise en cours…"; runQueue([[d.from, d.to]], d.scope); }
+      if (a === "del" && confirm("Supprimer cette analyse enregistrée ?")) {
+        scans = scans.filter(x => x !== d); saveScan(); renderScans();
+        scanData = scans[scans.length - 1] || null;
+        if (scanData) showScan(scanData); else { $("#senders").innerHTML = ""; setBanner(""); }
+      }
+    };
+    box.appendChild(r);
+  });
+  if (scans.length > 1) {
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = '<span class="mut">Additionner toutes les analyses pour repérer les expéditeurs récurrents</span><button class="btn sec" type="button">Voir le cumul</button>';
+    const cb = r.querySelector("button"); if (cumulView && ovlSet.size) cb.classList.add("ovl"); cb.onclick = showCumul; box.appendChild(r);
+  }
+}
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  try { const a = document.createElement("textarea"); a.value = t; a.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(a); a.select(); const ok = document.execCommand("copy"); a.remove(); return ok; } catch (e) { return false; }
+}
+function scanSummary(d) {
+  const fd = t => t ? new Date(t).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit" }) : "";
+  const CAT = { PROMOTIONS: "Promo", SOCIAL: "Social", UPDATES: "Notif", FORUMS: "Forums", PERSONAL: "Principal", AUCUNE: "sans-onglet" };
+  const S = Object.values(d.map).sort((a, b) => b.n - a.n), tot = S.reduce((a, o) => a + o.n, 0), L = [];
+  L.push("RÉSUMÉ D’ANALYSE GMAIL");
+  L.push("Périmètre : " + scopeBase(d.scope) + " · " + ageNote(d.scope).replace(/^\S+ /, "") + " · rangs " + d.from + " à " + (d.to || "fin") + " (1 = le plus récent) · mails du " + fd(d.dmin) + " au " + fd(d.dmax));
+  if (sizeTxt(d.scope)) L.push("FILTRE SUR LA TAILLE : analyse limitée aux mails " + sizeTxt(d.scope) + " (les mails plus petits sont exclus)");
+  L.push(tot + " messages comptés (" + d.done + "/" + d.total + " analysés" + (d.done < d.total ? ", analyse incomplète" : "") + (d.failIds && d.failIds.length ? ", dont " + d.failIds.length + " message(s) illisibles non comptés" : "") + ") · " + S.length + " expéditeurs, triés par nombre décroissant");
+  L.push("Colonnes : nombre | adresse | nom affiché | période (premier→dernier) | non lus | favoris | onglets Gmail | désinscription possible | taille");
+  S.forEach(o => {
+    const cats = o.cat ? Object.entries(o.cat).sort((a, b) => b[1] - a[1]).map(([k, v]) => (CAT[k] || k) + " " + v).join(", ") : "";
+    L.push([o.n, o.email, (o.name && o.name !== o.email ? o.name : "").replace(/\|/g, " "), o.t0 ? fd(o.t0) + "→" + fd(o.t1) : "", o.t0 ? "nl " + (o.u || 0) : "", o.t0 ? "fav " + (o.s || 0) : "", cats, o.unsub ? "désinscr" : "", hasSize(o) ? fmtSize(o.z) : ""].join(" | "));
+  });
+  const dom = {};
+  S.forEach(o => { const k = o.email.split("@")[1] || o.email, x = dom[k] || (dom[k] = { n: 0, a: 0 }); x.n += o.n; x.a++; });
+  const multi = Object.entries(dom).filter(([, x]) => x.a > 1).sort((a, b) => b[1].n - a[1].n);
+  if (multi.length) { L.push("", "DOMAINES AVEC PLUSIEURS ADRESSES (total | domaine | nombre d’adresses)"); multi.forEach(([k, x]) => L.push(x.n + " | " + k + " | " + x.a)); }
+  return L.join("\n");
+}
+async function fetchMeta(id) {
+  for (let t = 1; ; t++) {
+    try { return await api("messages/" + id + "?format=metadata&metadataHeaders=From&metadataHeaders=List-Unsubscribe"); }
+    catch (e) { if (t >= 6 || !(e.status === 429 || (e.status === 403 && /rate|quota/i.test(e.message)))) throw e; await sleep(1500 * t); }
+  }
+}
+function syncRange(src) {
+  const f = Math.max(1, +$("#rFrom").value || 1);
+  if (src === "to") { const t = +$("#rTo").value; $("#rCount").value = t ? Math.max(1, t - f + 1) : ""; }
+  else { const c = +$("#rCount").value; $("#rTo").value = c ? f + c - 1 : ""; }
+  updateEst();
+}
+$("#rFrom").oninput = () => syncRange("from");
+$("#rCount").oninput = () => syncRange("count");
+$("#rTo").oninput = () => syncRange("to");
+document.querySelectorAll("#chips [data-n]").forEach(b => b.onclick = () => {
+  const v = +b.dataset.n || ""; $("#rFrom").value = 1; $("#rCount").value = v; $("#rTo").value = v; updateEst();
+});
+function updateEst() { // durée estimée : lecture de chaque message (~3 000/min) + listage jusqu’au rang de fin (~60 000/min)
+  const e = $("#est"), f = Math.max(1, +$("#rFrom").value || 1), t = +$("#rTo").value || 0;
+  if (!t) { e.textContent = "Jusqu’au dernier message : durée selon la taille du périmètre."; return; }
+  const min = Math.max(0, t - f + 1) / 3000 + t / 60000;
+  e.textContent = "Durée estimée : " + (min < 0.75 ? "moins d’une minute" : min < 90 ? "environ " + Math.round(min) + " min" : "environ " + (min / 60).toFixed(1).replace(".", ",") + " h");
+}
+updateEst();
+$("#stop").onclick = e => {
+  stopFlag = true; e.target.disabled = true; if (activeBtn) activeBtn.textContent = "⏳ Arrêt en cours…"; e.target.textContent = "⏳ Arrêt en cours…";
+  $("#scanInfo").textContent = "Arrêt demandé : les requêtes déjà envoyées se terminent, puis la progression est sauvegardée…";
+};
+$("#scan").onclick = () => {
+  const scope = curScope(), from = Math.max(1, +$("#rFrom").value || 1), to = +$("#rTo").value || 0;
+  if (to && to < from) return msg("Le rang de fin doit être supérieur ou égal au rang de début.", 1);
+  runQueue([[from, to]], scope);
+};
+async function runQueue(ranges, scope) {
+  if (running) return;
+  running = true; stopFlag = false; lastExpired = false;
+  $("#scan").hidden = true; $("#stop").hidden = false; $("#scanBox").hidden = false;
+  { const pr = $("#prog"); pr.max = 1; pr.value = 0; } // la barre repart toujours de 0
+  try {
+    const maxTo = ranges.some(r => !r[1]) ? 0 : Math.max(...ranges.map(r => r[1]));
+    const all = await listIds(scope, maxTo || 1e6, (k, est, more) => {
+      if (stopFlag) { const e = new Error("Arrêt demandé pendant la liste des messages."); e.stop = true; throw e; }
+      msg("Liste des messages : " + fmt(k) + (maxTo ? " / " + fmt(maxTo) : ""));
+      { const pr = $("#prog"); pr.max = Math.max(1, maxTo || est || 0, more ? k + 500 : k); pr.value = Math.min(k, pr.max); } // phase 1 : liste des messages
+    });
+    msg("");
+    const total = all.length, notes = [], sb0 = splitScope(scope)[0], inb = sb0 === SC_INBOX, ageS = (splitScope(scope)[1] ? " (limité aux mails " + ageTxt(splitScope(scope)[1]) + ")" : "") + (sizeTxt(scope) ? " (limité aux mails " + sizeTxt(scope) + ")" : "");
+    const box = (inb ? "la boîte de réception" : sb0 === SC_ALL ? "« Tous les messages » (hors spam et corbeille)" : "le périmètre « " + scopeBase(scope) + " »") + ageS;
+    let done = 0;
+    for (let i = 0; i < ranges.length && !stopFlag; i++) {
+      let [f, t] = ranges[i];
+      const lbl = "rangs " + fmt(f) + " à " + (t ? fmt(t) : "la fin");
+      if (f > total) { notes.push("Vous avez demandé les " + lbl + ", mais " + box + " ne contient que " + fmt(total) + " messages : cette plage commence après le dernier message, il n’y a rien à analyser." + (inb ? " Les mails archivés ne sont pas dans la boîte de réception : choisissez « Tous les messages » dans la liste déroulante pour les inclure." : "")); continue; }
+      if (t && t > total) { notes.push("Vous avez demandé les " + lbl + ", mais " + box + " ne contient que " + fmt(total) + " messages : l’analyse a été ajustée aux rangs " + fmt(f) + " à " + fmt(total) + "."); t = total; ranges[i][1] = t; if (ranges.length === 1) { $("#rTo").value = t; $("#rCount").value = t - f + 1; } }
+      const dd = await runScan(scope, f, t, all, ranges.length > 1 ? "plage " + (i + 1) + "/" + ranges.length + " – " : "");
+      done++;
+      if (dd && dd.failIds && dd.failIds.length) notes.push("⚠️ " + fmt(dd.failIds.length) + " message(s) n’ont pas pu être lus après deux tentatives et ne sont pas comptés (" + (dd.failMsg || "erreur Gmail") + "). Ils ont probablement été déplacés ou supprimés pendant l’analyse ; relancez l’analyse pour les retenter.");
+    }
+    const extra = notes.length ? " " + notes.join(" ") : "";
+    msg(lastExpired ? "Session expirée : reconnectez‑vous puis reprenez depuis la liste." : stopFlag ? "Analyse arrêtée : vous pourrez la reprendre depuis la liste." : done ? "✅ Analyse terminée." + extra : "Aucune analyse lancée." + extra, lastExpired || !done);
+  } catch (err) { msg(err.message, !err.stop); }
+  running = false; activeBtn = null;
+  $("#scan").hidden = false; $("#stop").hidden = true; $("#stop").disabled = false; $("#stop").textContent = "⏸ Arrêter"; $("#scanBox").hidden = true;
+  $("#scanInfo").textContent = ""; renderScans(); if (scanData) showScan(scanData);
+}
+async function runScan(scope, from, to, all, pre) {
+  let d = scans.find(x => x.scope === scope && x.from === from && x.to === to);
+  if (d && d.done >= d.total && !confirm("La plage " + fmt(from) + " – " + (to ? fmt(to) : "fin") + " a déjà été analysée. La refaire ? (le résultat enregistré sera remplacé)")) return;
+  const fresh = !d || d.done >= d.total;
+  let s0 = from - 1;
+  if (!fresh && d.anchor) { const k = all.indexOf(d.anchor); if (k >= 0) s0 = k; }
+  const ids = all.slice(s0, to ? s0 + (to - from + 1) : undefined);
+  if (!ids.length) throw new Error("Plage vide : ce périmètre ne contient que " + fmt(all.length) + " messages.");
+  if (fresh) {
+    if (d) scans = scans.filter(x => x !== d);
+    d = { id: Date.now(), map: {}, done: 0, total: ids.length, scope, from, to, anchor: ids[0], date: Date.now(), dmin: 0, dmax: 0 }; scans.push(d);
+  }
+  d.total = ids.length; scanData = d;
+  const known = new Set(); Object.values(d.map).forEach(o => (o.ids || []).forEach(x => known.add(x))); // évite de compter deux fois à la reprise
+  let next = d.done, curT = 0, expired = false; const start = next, t0 = Date.now(), p = $("#prog"); p.max = Math.max(1, ids.length - start); p.value = 0; // phase 2 : lecture des messages (repart de 0, y compris à la reprise)
+  if (activeBtn) activeBtn.textContent = "⏳ Analyse en cours…";
+  const failed = [];
+  const ingest = (m, id) => {
+        const mt = +m.internalDate;
+        if (mt) { curT = mt; d.dmin = d.dmin ? Math.min(d.dmin, mt) : mt; d.dmax = Math.max(d.dmax || 0, mt); }
+        const h = Object.fromEntries((m.payload?.headers || []).map(x => [x.name.toLowerCase(), x.value]));
+        const f = h.from || "?";
+        const em = ((f.match(/<([^>]+)>/) || [0, f])[1]).trim().toLowerCase();
+        const o = d.map[em] || (d.map[em] = { email: em, name: f.replace(/<.*>/, "").replace(/"/g, "").trim() || em, n: 0, unsub: "", ids: [] });
+        if (o.ids && !known.has(id)) {
+          known.add(id); o.ids.push(id); o.n++;
+          const lb = m.labelIds || [];
+          if (mt) { o.t0 = o.t0 ? Math.min(o.t0, mt) : mt; o.t1 = Math.max(o.t1 || 0, mt); }
+          if (lb.includes("UNREAD")) o.u = (o.u || 0) + 1;
+          if (lb.includes("STARRED")) o.s = (o.s || 0) + 1;
+          if (m.sizeEstimate) { o.z = (o.z || 0) + (+m.sizeEstimate || 0); o.zn = (o.zn || 0) + 1; } // taille cumulée (octets) et nombre de mails dont la taille est connue
+          const ck = (lb.find(x => x.startsWith("CATEGORY_")) || "CATEGORY_AUCUNE").slice(9);
+          o.cat = o.cat || {}; o.cat[ck] = (o.cat[ck] || 0) + 1;
+        }
+        else if (!o.ids) o.n++;
+        const u = (h["list-unsubscribe"] || "").match(/<(https?:[^>]+)>/) || (h["list-unsubscribe"] || "").match(/<(mailto:[^>]+)>/);
+        if (u && !o.unsub) o.unsub = u[1];
+  };
+  await Promise.all(Array.from({ length: 10 }, async () => {
+    while (!stopFlag && next < ids.length) {
+      const i = next++;
+      try { ingest(await fetchMeta(ids[i]), ids[i]); }
+      catch (err) { if (/expir/.test(err.message)) { expired = true; stopFlag = true; } else failed.push([ids[i], err.message]); }
+      if (i % 25 === 0 && !stopFlag) {
+        p.value = Math.max(0, i - start);
+        const rate = Math.max(1, (i - start) / ((Date.now() - t0) / 1000));
+        $("#scanInfo").textContent = "⏳ " + pre + (curT ? monthYear(curT) : "…") + " – analyse " + fmt(i) + " / " + fmt(ids.length) + " (rang " + fmt(from + i) + ") – reste ≈ " + Math.ceil((ids.length - i) / rate / 60) + " min";
+      }
+      if (i % 1000 === 0 && i > start) { d.done = Math.max(start, i - 20); d.date = Date.now(); saveScan(); }
+    }
+  }));
+  if (!expired) { // 2e tentative pour les messages illisibles (et ceux restés en échec d'une reprise précédente)
+    const todo = [...new Set([...(d.failIds || []), ...failed.map(x => x[0])])].filter(x => !known.has(x)), still = [];
+    for (const id of todo) {
+      if (stopFlag) { still.push(id); continue; }
+      try { ingest(await fetchMeta(id), id); }
+      catch (err) { if (/expir/.test(err.message)) { expired = true; stopFlag = true; } still.push(id); d.failMsg = err.message; }
+    }
+    d.failIds = still;
+  }
+  d.done = Math.max(start, next - (expired ? 10 : 0)); d.date = Date.now();
+  if (expired) lastExpired = true;
+  saveScan();
+  return d;
+}
+let curSend = { list: [], scope: "" };
+let myAddrP = null; // adresse du compte connecté, normalisée (Gmail ignore points, casse et +alias)
+const normAddr = a => { a = (a || "").toLowerCase().trim(); const [l, d] = a.split("@"); return d === "gmail.com" || d === "googlemail.com" ? l.split("+")[0].replace(/\./g, "") + "@gmail.com" : a; };
+const isMyAddr = async email => { myAddrP = myAddrP || api("profile").then(p => normAddr(p.emailAddress)).catch(() => ""); const m = await myAddrP; return !!m && m === normAddr(email); };
+async function viewCounts(s, scope, fresh) { // ce que Gmail affichera après un clic sur « Voir » (recherche from: sans filtre, spam et corbeille exclus)
+  const key = "V|" + s.email + "|" + scope;
+  if (!fresh && cntCache.has(key)) return cntCache.get(key);
+  const [tot, sentDraft, c, mine] = await Promise.all([
+    exactCount("from:" + s.email, null, false),
+    exactCount("from:" + s.email + " (in:sent OR in:drafts)", null, false),
+    senderCounts(s, scope, fresh), isMyAddr(s.email)]);
+  const r = { tot, sentDraft, inScope: c.tous, big: c.big, mine }; cntCache.set(key, r); return r;
+}
+const viewTipText = (v, s, scLabel) => {
+  if (!v.tot) return "Gmail n’affichera aucun mail pour cette adresse (spam et corbeille exclus).";
+  const plus = v.big ? "+" : "", hors = Math.max(0, v.tot - v.sentDraft - v.inScope);
+  return (v.mine ? "⚠️ Cette adresse est la vôtre : Gmail affichera aussi tous vos mails envoyés. " : "")
+    + "Gmail affichera " + fmt(v.tot) + " mail(s) de cette adresse (spam et corbeille exclus), dont : "
+    + fmt(v.sentDraft) + " envoyé(s) ou brouillon(s), jamais touchés par Scannés et Tous ; "
+    + fmt(v.inScope) + plus + " dans le périmètre choisi (" + scLabel + ") ; "
+    + fmt(hors) + " hors de ce périmètre (trop récents, classés ailleurs ou épargnés par les garde-fous). L’analyse affichée n’en a identifié que " + fmt(s.n) + ".";
+};
+async function senderCounts(s, scope, fresh, ph) { // nombres exacts pour « Scannés » et « Tous » (le périmètre inclut l’ancienneté minimale)
+  const base = senderQ(s.email, scope), key = base + "|" + (s.ids ? s.ids.length : "-");
+  if (!fresh && cntCache.has(key)) return cntCache.get(key);
+  const all = await listIds(base, 100000, ph ? (n, est, more) => ph.set(n, Math.max(est || 0, more ? n + 500 : n)) : undefined), allS = new Set(all), c = { tousIds: all, tous: all.length, big: all.length >= 100000 };
+  if (s.ids && s.ids.length && s.ids.length === s.n) {
+    const sc = [...new Set(s.ids)];
+    c.scIds = sc.filter(i => allS.has(i)); c.sc = c.scIds.length;
+    c.scGone = sc.filter(i => !allS.has(i)).length;
+  }
+  cntCache.set(key, c); return c;
+}
+function afterTrash(email, ids, all, hadIds) {
+  purgeSender(email, all && !hadIds ? null : new Set(ids));
+  cntCache.clear(); totCache.forEach((v, k) => { if (k.endsWith("|" + email)) totCache.delete(k); });
+  if (cumulView) showCumul(); else if (scanData) showScan(scanData);
+}
+const cntCache = new Map(); // nombre de mails Gmail par requête, pour la bulle du bouton « Tous »
+function scannedQuery(email) { // requête Gmail des mails de l’expéditeur couverts par l’analyse affichée (périmètre + période des rangs analysés)
+  const src = cumulView ? scans : (scanData ? [scanData] : []), parts = [];
+  src.forEach(d => { if (d.map && d.map[email] && d.dmin) parts.push({ d, q: d.scope + " after:" + (Math.floor(d.dmin / 1000) - 1) + " before:" + (Math.floor(d.dmax / 1000) + 1) }); });
+  if (!parts.length) return null;
+  return { parts, q: "from:" + email + " " + (parts.length === 1 ? parts[0].q : "(" + parts.map(p => "(" + p.q + ")").join(" OR ") + ")") };
+}
+function showSenders(list, scope) { curSend = { list, scope: scope || $("#scope").value }; totRun++; $("#modeInfo").textContent = ""; renderSenders(); if (senderMode === "total") ensureTotals(); }
+function isPartial() { // « scannés » et « total dans le périmètre » ne diffèrent que si l’analyse ne couvre pas tout le périmètre
+  const src = cumulView ? scans : (scanData ? [scanData] : []);
+  return src.some(d => d && (d.from > 1 || d.to || (d.total && d.done < d.total)));
+}
+const cntDual = (s, scope) => { // « scannés / total » : la valeur du bouton choisi en noir, l’autre en gris
+  const t = totCache.get(totKey(s.email, scope)), onT = senderMode === "total";
+  return `<span class="cnt dual" data-tot="${esc(s.email)}" title="À gauche : mails scannés. À droite : total des mails de l’expéditeur dans le périmètre (envoyés et brouillons exclus). La valeur en noir correspond au bouton choisi.">` +
+    `<span class="${onT ? "off" : "on"}">${fmt(s.n)}</span><span class="sep">/</span><span class="tv ${onT ? "on" : "off"}">${t == null ? "…" : fmt(t)}</span></span>`;
+};
+const fmtSize = b => b >= 1073741824 ? (b / 1073741824).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " Go" : b >= 1048576 ? (b / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: b >= 10485760 ? 0 : 1 }) + " Mo" : Math.max(1, Math.round(b / 1024)).toLocaleString("fr-FR") + " Ko";
+const hasSize = x => !!x.zn && x.zn >= x.n; // taille connue pour tous les mails scannés de l’expéditeur
+async function unsubscribe(s, btn) {
+  // Un lien « 1 clic » (RFC 8058) n’accepte que POST : l’ouvrir dans un onglet (GET) donne « HTTP ERROR 400 ».
+  const w = window.open("about:blank", "_blank"); // ouvert tout de suite (clic de l’utilisateur) pour ne pas être bloqué après les requêtes
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = "⏳…";
+  const pU = Prog.start("Désinscription : " + s.email, 3);
+  try {
+    const d = await api("messages?maxResults=1&fields=messages/id&q=" + encodeURIComponent("from:" + s.email + " -in:sent -in:drafts")), id = d && d.messages && d.messages[0] && d.messages[0].id, h = {};
+    pU.set(1);
+    if (id) { const m = await api("messages/" + id + "?format=metadata&metadataHeaders=List-Unsubscribe&metadataHeaders=List-Unsubscribe-Post"); (m.payload?.headers || []).forEach(x => { h[x.name.toLowerCase()] = x.value; }); }
+    pU.set(2);
+    const lu = h["list-unsubscribe"] || "", http = (lu.match(/<(https?:[^>]+)>/) || [])[1] || (/^https?:/i.test(s.unsub) ? s.unsub : ""), mail = (lu.match(/<(mailto:[^>]+)>/) || [])[1] || (/^mailto:/i.test(s.unsub) ? s.unsub : "");
+    const one = /one-click/i.test(h["list-unsubscribe-post"] || "") && /^https:/i.test(http), host = (() => { try { return new URL(http).hostname; } catch (e) { return http; } })();
+    if (one) {
+      if (w) w.close();
+      if (!confirm("Envoyer la demande de désinscription de " + s.email + " à " + host + " ?\n\nCet expéditeur propose la désinscription « en un clic ». Pour un expéditeur douteux (spam), évitez : cela confirme que votre adresse est active.")) return msg("");
+      try {
+        await fetch(http, { method: "POST", mode: "no-cors", credentials: "omit", referrerPolicy: "no-referrer", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "List-Unsubscribe=One-Click" });
+        msg("✅ Demande de désinscription envoyée à " + host + ". Le navigateur ne permet pas de lire la réponse : si vous recevez encore des mails de cet expéditeur dans quelques jours, utilisez « Voir » puis le lien de désinscription du mail.");
+      } catch (e) { window.open(http, "_blank", "noopener,noreferrer"); msg("La demande directe a échoué ; la page de désinscription a été ouverte dans un nouvel onglet.", 1); }
+    } else if (http) {
+      if (w) { w.opener = null; w.location.href = http; msg("Page de désinscription ouverte dans un nouvel onglet (" + host + ")."); }
+      else msg("Le navigateur a bloqué l’ouverture de l’onglet : autorisez les fenêtres pour ce site, puis réessayez.", 1);
+    } else if (mail) {
+      if (w) w.close(); const a = document.createElement("a"); a.href = mail; a.click();
+      msg("Cet expéditeur se désinscrit par e-mail : votre application de messagerie s’ouvre avec le message à envoyer.");
+    } else { if (w) w.close(); msg("Aucun lien de désinscription trouvé dans le mail le plus récent de cet expéditeur.", 1); }
+  } catch (e) { if (w) w.close(); msg("Désinscription impossible : " + e.message, 1); }
+  finally { pU.done(); btn.disabled = false; btn.textContent = old; }
+}
+const CAT_LBL = { PROMOTIONS: "Promotions", SOCIAL: "Réseaux sociaux", UPDATES: "Notifications", FORUMS: "Forums" };
+function badges(s) { // indicateurs tirés de l’analyse (sans requête supplémentaire)
+  const L = [], n = s.nStats || s.n;
+  if (s.t0 && n) { const u = Math.min(s.u || 0, n); L.push("📭 " + Math.round(100 * u / n) + " % non lus (" + fmt(u) + " / " + fmt(n) + ")"); }
+  if (hasSize(s)) L.push("💾 " + fmtSize(s.z));
+  if (s.s) L.push("⭐ " + fmt(s.s) + " en favori");
+  if (s.cat && n) { const [k, v] = Object.entries(s.cat).sort((a, b) => b[1] - a[1])[0] || []; if (CAT_LBL[k] && v / n >= 0.6) L.push("🗂 " + CAT_LBL[k]); }
+  if (s.unsub) L.push("🔕 désinscription possible");
+  return L;
+}
+// score d’inutilité = non lus × part de non lus (u²/n) : 3 000 mails dont 98 % non lus passent avant 1 seul mail non lu ; favoris = en dernier ; sans statistiques = tout à la fin
+const uselessScore = x => { if (!x.t0) return -2; if (x.s > 0) return -1; const n = x.nStats || x.n || 1, u = Math.min(x.u || 0, n); return u * u / n; };
+let senderSort = "n", wrTok = 0; // « n » = par nombre de mails ; « u » = par inutilité
+const paintWr = () => document.querySelectorAll("#senders .srow").forEach(r => {
+  const w = wrCache.get(r.dataset.em), el = r.querySelector(".wr");
+  if (el && w != null) { el.textContent = (el.dataset.sep || "") + (w ? "✉️ vous lui avez déjà écrit" : "✉️ jamais écrit"); el.style.color = w ? "var(--dg)" : ""; el.style.fontWeight = w ? "600" : ""; }
+});
+async function writtenFill(list) { // en arrière-plan, pour les expéditeurs affichés : lui avez-vous déjà écrit ?
+  const tok = ++wrTok, todo = list.filter(s => !wrCache.has(s.email)); let i = 0; paintWr();
+  await Promise.all(Array.from({ length: 3 }, async () => {
+    while (i < todo.length && tok === wrTok) {
+      const s = todo[i++];
+      try { const d = await api("messages?maxResults=1&fields=messages/id&q=" + encodeURIComponent("in:sent to:" + s.email)); wrCache.set(s.email, !!(d && d.messages && d.messages.length)); paintWr(); } catch (e) { /* reste inconnu */ }
+    }
+  }));
+}
+let fillTok = 0; const totBusy = new Set();
+async function fillTotals(list, scope) { // en arrière-plan : totaux des seuls expéditeurs affichés (le reste se calcule au clic sur « Total dans le périmètre »)
+  const tok = ++fillTok, todo = list.filter(s => !totCache.has(totKey(s.email, scope)) && !totBusy.has(totKey(s.email, scope)));
+  let i = 0;
+  await Promise.all(Array.from({ length: 3 }, async () => {
+    while (i < todo.length && tok === fillTok) {
+      const s = todo[i++], k = totKey(s.email, scope); totBusy.add(k);
+      try {
+        const n = await exactCount(senderQ(s.email, scope), null, false);
+        totCache.set(k, n);
+        document.querySelectorAll("#senders .dual").forEach(el => { if (el.dataset.tot === s.email) { const tv = el.querySelector(".tv"); if (tv) tv.textContent = fmt(n); } });
+      } catch (e) { /* le total reste « … » */ } finally { totBusy.delete(k); }
+    }
+  }));
+}
+function renderSenders() {
+  const partial = isPartial(); $("#viewMode").hidden = !partial; // le choix du nombre n’a de sens que si l’analyse est partielle
+  if (!partial && senderMode === "total") { senderMode = "scan"; totRun++; updMode(); }
+  const scope = curSend.scope, q = ($("#sfilter").value || "").trim().toLowerCase();
+  const tm = senderMode === "total" && curSend.list.every(x => totCache.has(totKey(x.email, scope))), cn = x => tm ? totCache.get(totKey(x.email, scope)) : x.n;
+  const stats = curSend.list.some(x => x.t0), sizes = curSend.list.some(hasSize), sbU = $("#sortMode [data-so=\"u\"]"), sbZ = $("#sortMode [data-so=\"z\"]");
+  if (!stats && senderSort === "u") senderSort = "n";
+  if (!sizes && senderSort === "z") senderSort = "n";
+  sbU.disabled = !stats; sbU.title = stats ? "Classe d’abord les expéditeurs dont les mails sont surtout non lus (nombre de non lus × part de non lus)" : "Indisponible : cette analyse ne mémorise pas les non lus ; refaites-la";
+  sbZ.disabled = !sizes; sbZ.title = sizes ? "Classe les expéditeurs par taille totale de leurs mails scannés (pour libérer de la place)" : "Indisponible : cette analyse ne mémorise pas la taille des mails ; refaites-la";
+  document.querySelectorAll("#sortMode [data-so]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.so === senderSort)));
+  $("#sortInfo").textContent = senderSort === "u" ? "Classés par nombre de mails non lus pondéré par leur part (3 000 mails dont 98 % non lus passent avant 1 mail non lu). Les expéditeurs avec favoris sont placés en dernier. Chiffres issus de l’analyse."
+    : senderSort === "z" ? "Classés par taille totale des mails scannés (estimation Gmail : pièces jointes comprises). Les mails en corbeille occupent encore de la place jusqu’à leur suppression définitive." : "";
+  const every = senderSort === "u" ? [...curSend.list].sort((a, b) => uselessScore(b) - uselessScore(a) || b.n - a.n)
+    : senderSort === "z" ? [...curSend.list].sort((a, b) => (hasSize(b) ? b.z : -1) - (hasSize(a) ? a.z : -1) || b.n - a.n)
+    : tm ? [...curSend.list].sort((a, b) => cn(b) - cn(a)) : curSend.list;
+  const list = q ? every.filter(x => (x.email + " " + (x.name || "")).toLowerCase().includes(q)).slice(0, 200) : every.slice(0, 50);
+  $("#sfilterInfo").textContent = !every.length ? "" : q ? fmt(list.length) + " résultat(s) sur " + fmt(every.length) + " expéditeurs" : "Les 50 premiers sur " + fmt(every.length) + " expéditeurs : utilisez la recherche pour trouver les autres.";
+  const inbox = splitScope(scope)[0] === SC_INBOX, scLabel = scopeName(scope);
+  const box = $("#senders"); box.innerHTML = list.length ? "" : "<p class='mut'>Aucun résultat.</p>";
+  list.forEach(s => {
+    const canScanned = s.ids && s.ids.length && s.ids.length === s.n, sq = scannedQuery(s.email);
+    const r = document.createElement("div"); r.className = "row";
+    r.className = "row srow"; r.dataset.em = s.email; const bl = badges(s);
+    r.innerHTML = `<div class="main"><div class="who" title="${esc(s.name + " — " + s.email)}"><b>${esc(s.name)}</b><span class="mut">${esc(s.email)}</span><span class="mut bdg">${esc(bl.join(" · "))}<small class="wr" data-sep="${bl.length ? " · " : ""}"></small></span></div>${partial ? cntDual(s, scope) : `<span class="cnt" title="Mails scannés">${fmt(s.n)}</span>`}
+      <span class="acts"><span class="unsl${s.unsub ? " tip" : ""}"${s.unsub ? ` data-tip="Lit l’en-tête de désinscription du mail le plus récent de cet expéditeur (le lien le plus à jour). Si l’expéditeur propose la désinscription « en un clic », la demande est envoyée directement après confirmation ; sinon sa page de désinscription s’ouvre dans un nouvel onglet."` : ""}>${s.unsub ? `<button class="btn sec" data-u="1" type="button">Se désinscrire</button>` : ""}</span>
+      <span class="tip" data-v="1"><a class="btn sec" target="_blank" rel="noopener" href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent("from:" + s.email)}">Voir</a></span>
+      <span class="tip" data-vs="1">${sq ? `<a class="btn sec" target="_blank" rel="noopener" href="https://mail.google.com/mail/u/0/#search/${encodeURIComponent(sq.q)}">Voir scannés</a>` : `<button class="btn sec off" type="button" aria-disabled="true">Voir scannés</button>`}</span>
+      <span class="tip" data-tip="Affiche une ligne par bouton (Voir, Voir scannés, Scannés, Tous) avec le nombre exact de mails concernés et ce que ce nombre mesure."><button class="btn sec" data-i="1" type="button">Info</button></span>
+      ${canScanned
+        ? `<span class="tip" data-tip="Met à la corbeille uniquement les ${fmt(s.n)} mail(s) de cet expéditeur identifiés lors de l’analyse affichée."><button class="btn or" data-s="scanned" type="button">Scannés</button></span>`
+        : `<span class="tip" data-tip="Indisponible : cette analyse date d’avant la v1.14 (ou a été reprise depuis une ancienne version). Refaites-la pour mémoriser les identifiants des messages."><button class="btn or off" type="button" aria-disabled="true">Scannés</button></span>`}
+      <span class="tip" data-tip="Met à la corbeille TOUS les mails de cet expéditeur dans le périmètre choisi (${esc(scLabel)}), même hors de la zone analysée. Envoyés et brouillons épargnés.${guardTxt() ? " Épargnés aussi : " + guardTxt() + "." : ""}"><button class="btn dg" data-s="all" type="button">Tous</button></span></span></div>`;
+    const info = document.createElement("div"); info.className = "infoln"; info.hidden = true; r.appendChild(info);
+    const viewTip = () => "Ouvre Gmail sur TOUS les mails de cet expéditeur, sans aucun filtre d’ancienneté ni de périmètre : toute la messagerie (spam et corbeille exclus), mails récents compris. Pour ne voir que ceux de l’analyse affichée, utilisez « Voir scannés »."; // aucun filtre d’ancienneté ici
+    const vst = r.querySelector("[data-vs]"), fdt = t => new Date(t).toLocaleDateString("fr-FR");
+    vst.dataset.tip = !sq ? "Indisponible : cette analyse ne mémorise pas la période des mails analysés. Refaites-la pour activer ce bouton."
+      : sq.parts.length === 1 ? "Ouvre Gmail sur les mails de cet expéditeur correspondant à l’analyse affichée : périmètre « " + scopeName(sq.parts[0].d.scope) + " », mails du " + fdt(sq.parts[0].d.dmin) + " au " + fdt(sq.parts[0].d.dmax) + " (rangs " + fmt(sq.parts[0].d.from) + " à " + (sq.parts[0].d.to ? fmt(sq.parts[0].d.to) : "la fin") + "). Les mails arrivés depuis, ou hors de cette période, n’y figurent pas."
+      : "Ouvre Gmail sur les mails de cet expéditeur correspondant aux " + sq.parts.length + " analyses du cumul, chacune avec son périmètre et sa période de mails analysés.";
+    const vtEl = r.querySelector("[data-v]"); let vtm = null; // data-v est posé sur le span.tip lui-même
+    vtEl.dataset.tip = viewTip(); // 1re bulle immédiate ; la 2e, avec les nombres exacts, la remplace après un court délai
+    vtEl.addEventListener("mouseenter", () => {
+      clearTimeout(vtm); vtEl.dataset.tip = viewTip();
+      vtm = setTimeout(async () => {
+        vtEl.dataset.tip = viewTip() + " ⏳ Calcul du nombre de mails…";
+        try { vtEl.dataset.tip = viewTipText(await viewCounts(s, scope), s, scLabel); } catch (e) { vtEl.dataset.tip = viewTip(); }
+      }, 300);
+    });
+    vtEl.addEventListener("mouseleave", () => clearTimeout(vtm));
+    const ub = r.querySelector("[data-u]"); if (ub) ub.onclick = () => unsubscribe(s, ub);
+    r.querySelector("[data-i]").onclick = async e => {
+      const ib = e.currentTarget; ib.disabled = true; info.hidden = false; info.textContent = "⏳ Calcul en cours…";
+      const pI = Prog.start("Info : calcul des nombres de mails", 3), tick = (() => { let k = 0; return x => { pI.set(++k); return x; }; })();
+      try {
+        const c = tick(await senderCounts(s, scope, true)), plus = c.big ? "+" : "";
+        const [v, vsN] = await Promise.all([viewCounts(s, scope, true).then(tick), sq ? exactCount(sq.q, null, false).then(tick) : Promise.resolve(tick(null))]);
+        const line = (nom, n, quoi) => "<div style=\"margin:3px 0\"><b>" + nom + "</b> · <b>" + n + "</b> mail(s) — " + quoi + "</div>";
+        const L = [];
+        L.push(line("Voir", fmt(v.tot),
+          "tous les mails de cette adresse dans Gmail (spam et corbeille exclus), sans aucun filtre de périmètre ni d’ancienneté, mails récents compris, dont " + fmt(v.sentDraft) + " envoyé(s) ou brouillon(s)."
+          + (v.mine ? " ⚠️ Cette adresse est la vôtre : ce sont vos propres mails." : "")));
+        L.push(sq
+          ? line("Voir scannés", fmt(vsN),
+              (sq.parts.length === 1
+                ? "mails de cette adresse dans le périmètre « " + esc(scopeName(sq.parts[0].d.scope)) + " », reçus du " + fdt(sq.parts[0].d.dmin) + " au " + fdt(sq.parts[0].d.dmax) + " (rangs " + fmt(sq.parts[0].d.from) + " à " + (sq.parts[0].d.to ? fmt(sq.parts[0].d.to) : "la fin") + ")"
+                : "mails de cette adresse correspondant aux " + sq.parts.length + " analyses du cumul, chacune avec son périmètre et sa période")
+              + ". C’est la zone analysée : elle peut contenir des mails arrivés depuis ou non scannés ; l’analyse en a identifié " + fmt(s.n) + ".")
+          : "<div style=\"margin:3px 0\"><b>Voir scannés</b> · indisponible — cette analyse ne mémorise pas la période des mails analysés ; refaites-la.</div>");
+        L.push(c.sc != null
+          ? line("Scannés", fmt(c.sc),
+              "mails identifiés lors de l’analyse affichée (sur " + fmt(s.n) + "), encore présents dans le périmètre « " + esc(scLabel) + " », envoyés et brouillons exclus" + guardNote() + " : ce que le bouton met à la corbeille." + (c.scGone ? " " + fmt(c.scGone) + " identifié(s) n’y sont plus (ou sont épargnés par les garde-fous)." : ""))
+          : "<div style=\"margin:3px 0\"><b>Scannés</b> · indisponible — analyse à refaire pour mémoriser les mails identifiés.</div>");
+        L.push(line("Tous", fmt(c.tous) + plus,
+          "mails de cette adresse dans le périmètre « " + esc(scLabel) + " » (ancienneté minimale incluse), envoyés et brouillons exclus" + guardNote() + ", même hors de la zone analysée" + (c.sc != null ? " (dont " + fmt(c.tous - c.sc) + " hors de cette zone)" : "") + " : ce que le bouton met à la corbeille."));
+        info.innerHTML = L.join("");
+      } catch (err) { info.textContent = "Erreur : " + err.message; }
+      pI.done(); ib.disabled = false;
+    };
+    const tipText = (kind, c) => kind === "all"
+      ? "Mettra à la corbeille " + fmt(c.tous) + (c.big ? "+" : "") + " mail(s) de cet expéditeur dans " + scLabel + ", même hors de la zone analysée." + " Envoyés et brouillons épargnés." + (guardTxt() ? " Épargnés aussi : " + guardTxt() + "." : "")
+      : "Mettra à la corbeille " + fmt(c.sc) + " mail(s) parmi les " + fmt(s.n) + " identifiés lors de l’analyse affichée." + (c.scGone ? " " + fmt(c.scGone) + " ne sont plus dans ce périmètre ou sont épargnés par les garde-fous." : "");
+    [["all", r.querySelector('[data-s="all"]')], ["scanned", r.querySelector('[data-s="scanned"]')]].filter(x => x[1]).forEach(([kind, btn]) => {
+      const el = btn.parentElement, base = el.dataset.tip; let tm = null;
+      el.addEventListener("mouseenter", () => {
+        clearTimeout(tm);
+        tm = setTimeout(async () => {
+          el.dataset.tip = base + " ⏳ Calcul du nombre de mails…";
+          try { el.dataset.tip = tipText(kind, await senderCounts(s, scope)); } catch (e) { el.dataset.tip = base; }
+        }, 300);
+      });
+      el.addEventListener("mouseleave", () => clearTimeout(tm));
+    });
+    r.querySelectorAll("button[data-s]").forEach(btn => btn.onclick = async () => {
+      const dom = s.email.split("@")[1] || "?", kind = btn.dataset.s;
+      r.querySelectorAll("button[data-s]").forEach(x => x.disabled = true);
+      let n = 0;
+      try {
+        msg("Calcul des mails concernés…");
+        const c = await (async () => { const pS = Prog.start("Calcul des mails concernés", 1); try { return await senderCounts(s, scope, true, pS); } finally { pS.done(); } })();
+        if (kind === "scanned") {
+          n = await trashIds(c.scIds, "Expéditeur : " + s.email + "\nSeulement les messages identifiés lors de l’analyse, rien d’autre." + confirmExtra(s), "Expéditeur @" + dom + " (scannés)");
+          if (n) afterTrash(s.email, c.scIds, false, !!s.ids);
+        } else {
+          n = await trashIds(c.tousIds, "Expéditeur : " + s.email + "\nPérimètre : " + scLabel + " — TOUS ses messages, pas seulement ceux de la zone analysée (envoyés et brouillons épargnés)" + confirmExtra(s), "Expéditeur @" + dom + " (tous, " + (inbox ? "réception" : scope === SC_ALL ? "tout Gmail" : scLabel) + ")");
+          if (n) afterTrash(s.email, c.tousIds, true, !!s.ids);
+        }
+      } catch (e) { msg(e.message, 1); }
+      if (!n) r.querySelectorAll("button[data-s]").forEach(x => x.disabled = false);
+    });
+    box.appendChild(r);
+  });
+  if (partial) fillTotals(list, scope);
+  writtenFill(list);
+}
+
+$("#sfilter").oninput = renderSenders;
+document.querySelectorAll("#sortMode [data-so]").forEach(b => b.onclick = () => { if (b.disabled || b.dataset.so === senderSort) return; senderSort = b.dataset.so; renderSenders(); });
+GUARDS.forEach(g => $("#" + g[0]).onchange = () => { // un garde-fou change les requêtes : on recompte les nettoyages et on réaffiche les expéditeurs
+  try { localStorage.setItem(GUARD_KEY, JSON.stringify(Object.fromEntries(GUARDS.map(x => [x[0], $("#" + x[0]).checked])))); } catch (e) {}
+  cntCache.clear(); refreshPresets(); if (curSend.list.length) renderSenders();
+});
+[$("#scope"), $("#scopeAge"), $("#scopeSize")].forEach(el => el.addEventListener("change", () => { if (cumulView) showCumul(); })); // en vue cumulée, « Tous » suit les listes déroulantes
+$("#verBtn").textContent = "v" + VERSION;
+$("#verBtn").onclick = () => {
+  $("#verList").innerHTML = CHANGELOG.slice().reverse().map(([v, t]) => `<li><b>v${esc(v)}</b>${v === VERSION ? " (actuelle)" : ""} – ${esc(t)}</li>`).join("");
+  $("#verDlg").showModal();
+};
+$("#verClose").onclick = () => $("#verDlg").close();
+$("#verDlg").onclick = e => { if (e.target.id === "verDlg") e.target.close(); };
+document.title = "Ménage Gmail v" + VERSION;
+// La bulle d'un bouton disparaît quand on clique dessus (ou qu'on touche l'écran) et ne revient qu'après avoir quitté ce bouton
+document.addEventListener("click", e => { const t = e.target.closest && e.target.closest(".tip"); if (t) t.classList.add("nt"); }, true);
+document.addEventListener("mouseout", e => { const t = e.target.closest && e.target.closest(".tip"); if (t && !t.contains(e.relatedTarget)) t.classList.remove("nt"); });
+document.addEventListener("touchstart", () => document.querySelectorAll(".tip").forEach(t => t.classList.add("nt")), { capture: true, passive: true });
+render();
+</script>
 </body>
 </html>
