@@ -250,10 +250,11 @@ table.dist td.r{text-align:right}
 <!-- ===== APPLICATION ===== -->
 <section id="app" hidden>
   <div id="acctBar" hidden role="status"></div>
+  <button class="btn sec" id="ownDemo" type="button" hidden>🧪 Ouvrir la démo (mode propriétaire)</button>
   <div id="demoBar" class="card" hidden style="border-color:#7b1fa2">
     <b>🧪 Mode démonstration</b> <span class="mut">Les suppressions n’affectent que cette fausse boîte.</span><br>
     <button class="btn" id="demoReset" type="button">↩️ Restaurer les données de démo initiales</button>
-    <button class="btn sec" id="demoAdd" type="button">➕ Ajouter de nouvelles données de démo</button>
+    <button class="btn sec" id="demoAdd" type="button" hidden>➕ Ajouter de nouvelles données de démo</button>
     <button class="btn sec" id="demoQuit" type="button">Quitter la démo</button>
     <div class="mut" id="demoInfo"></div>
   </div>
@@ -477,7 +478,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.83"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.84"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -563,6 +564,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.81", "Démo : la requête pour l’IA est désormais prête à l’emploi. Le profil souhaité (facultatif) et le nombre d’expéditeurs se saisissent dans la fenêtre « Ajouter de nouvelles données de démo » et sont insérés automatiquement dans la requête copiée ; sans rien saisir, l’IA génère un jeu varié d’environ 30 expéditeurs. La requête interdit à l’IA de poser des questions ou d’ajouter du texte autour du JSON."],
   ["1.82", "Démo : les boutons « Voir » ouvrent une fausse fenêtre Gmail (style repris de Gmail) au lieu du vrai Gmail. Liste défilante des mails de la recherche, barre de recherche fonctionnelle, navigation (réception, suivis, envoyés, corbeille, catégories, libellés), sélection (tous, aucun, lus, non lus, suivis, un par un), suppression d’un mail ou de la sélection avec « Annuler », suppression définitive depuis la corbeille, favoris, lu / non lu et lecture d’un mail. Les modifications sont conservées pendant la session de démo et effacées par « Restaurer les données de démo initiales »."],
   ["1.83", "Bouton « ↻ Actualiser toute l’analyse (rapide) » dans l’encadré bleu de l’analyse : une seule recherche par analyse (limitée à sa période) pour retirer les mails qui ne sont plus dans le périmètre ; les nombres de mails sont exacts, les non lus, favoris, onglets et tailles sont estimés au prorata (« ≈ valeurs estimées » sur la ligne). Le ↻ d’une ligne reste le recalcul exact. Après un nettoyage rapide (ou des suppressions dans la fausse fenêtre Gmail de la démo), l’analyse est signalée comme périmée par un avertissement jaune et le bouton est mis en évidence."],
+  ["1.84", "Démo : le bouton « Ajouter de nouvelles données de démo » est masqué par défaut ; il n’apparaît qu’après une connexion Google réelle avec le compte propriétaire (adresse vérifiée par Google, comparée à un bloc chiffré AES-GCM / PBKDF2 : aucune adresse en clair dans le code). Une démo lancée sans compte Google n’affiche jamais ce bouton."]
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -619,6 +621,25 @@ function loadAccountData() { // (re)charge les données du compte connecté et v
   wrCache.clear(); cntCache.clear(); totCache.clear(); myAddrP = null; scopeLabels = []; ovlSet = new Set();
   $("#senders").innerHTML = ""; setBanner(""); $("#sfilterInfo").textContent = "";
 }
+// ===== Déverrouillage du bouton « Ajouter des données de démo » (réservé au propriétaire) =====
+// L’adresse n’est pas dans le code : seul un bloc chiffré (AES-GCM, clé PBKDF2 dérivée de l’adresse) est publié. Déchiffrer = prouver qu’on connaît l’adresse.
+const OWN_BLOB = "MxBhf1vyt2zF+I284IHBt4REdCLx2Y1t8M0iBopE6Rmtojor4SuYnbQXPWGwy9t1Nf4vsadB8vLT3/epwt/Tdd61tlv+", OWNK = "gmailMenage.owner";
+async function ownerCheck(email) {
+  try {
+    email = String(email || "").trim().toLowerCase(); if (!email || !(window.crypto && crypto.subtle)) return false;
+    const b = Uint8Array.from(atob(OWN_BLOB), c => c.charCodeAt(0)), te = new TextEncoder();
+    const base = await crypto.subtle.importKey("raw", te.encode(email), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt: b.slice(0, 16), iterations: 310000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b.slice(16, 28) }, key, b.slice(28));
+    return new TextDecoder().decode(pt) === email;
+  } catch (e) { return false; }
+}
+let demoOwner = false;
+async function ownerRefresh() { // appelé au démarrage de la démo : clé mémorisée seulement après une connexion Google vérifiée
+  let k = ""; try { k = sessionStorage.getItem(OWNK) || ""; } catch (e) {}
+  demoOwner = k ? await ownerCheck(k) : false; $("#demoAdd").hidden = !demoOwner;
+}
+$("#ownDemo").onclick = () => { location.search = "?demo"; };
 const EXPK = "gmailMenage.expected";
 const colorOf = e => { let h = 0; for (const c of e) h = (h * 31 + c.charCodeAt(0)) % 360; return "hsl(" + h + ",60%,36%)"; };
 function setAcctBar(email) {
@@ -650,6 +671,7 @@ $("#go").onclick = async () => {
           clearTimeout(ghTimer); ghTimer = null;
           try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) await ghSync(true); } catch (e) {}
         }
+        ownerCheck(email).then(ok => { try { if (ok) sessionStorage.setItem(OWNK, email); else sessionStorage.removeItem(OWNK); } catch (e) {} $("#ownDemo").hidden = !ok; });
         acct = email; setAcctBar(email); loadAccountData();
         $("#connect").hidden = true; $("#tools").hidden = false; buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ghInit(); ghSync(false).then(() => { try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) ghSync(true); } catch (e) {} });
       },
@@ -2094,7 +2116,7 @@ function demoBoot() { // même enchaînement qu’après une vraie connexion
   document.title = "Démo — Ménage Gmail v" + VERSION;
   $("#setup").hidden = true; $("#app").hidden = false; $("#connect").hidden = true; $("#tools").hidden = false; $("#demoBar").hidden = false; $("#reset").hidden = true;
   const g = $("#ghDet") && $("#ghDet").closest(".card"); if (g) g.hidden = true; // pas de journal GitHub privé en démo
-  demoInfoLine(); buildPresets(); loadStats(); restoreScan(); loadScopeLabels();
+  demoInfoLine(); buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ownerRefresh();
 }
 async function demoStart() {
   DEMO_ON = true; msg("Chargement de la démonstration…");
@@ -2173,6 +2195,7 @@ async function demoAdd(toGh) {
   finally { pA.done(); bs.forEach(b => b.disabled = false); }
 }
 $("#demoAdd").onclick = () => {
+  if (!demoOwner) return;
   const c = demoStore.get("gh") || {};
   $("#demoRepo").value = c.repo || demoGuessRepo(); $("#demoTok").value = ""; $("#demoTok").placeholder = c.token ? "Jeton enregistré (laisser vide pour le conserver)" : "github_pat_…"; $("#demoRemember").checked = !!c.token || !demoStore.get("gh");
   $("#demoPromptTxt").value = demoPrompt(); $("#demoCheck").textContent = ""; $("#demoDlg").showModal();
