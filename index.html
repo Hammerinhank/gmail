@@ -184,6 +184,8 @@ table.dist td.r{text-align:right}
 #gmToast button{color:#8ab4f8;font-weight:700}
 .gm-fake{cursor:default}
 @media (max-width:820px){.gm-side{display:none;position:absolute;left:0;top:0;bottom:0;z-index:10;background:#566989;width:250px;box-shadow:4px 0 12px rgba(0,0,0,.4)}.gm-side.open{display:block}.gm-main{margin:0 6px}.gm-row{grid-template-columns:28px 28px 120px minmax(0,1fr) 60px}.gm-imp,.gm-att{display:none}.gm-up,.gm-top .gm-help{display:none}.gm-logo{margin-right:2px}.gm-logo>span{display:none}.gm-top{gap:4px;padding:0 6px}.gm-search{min-width:0;padding:0 12px}.gm-tb{gap:2px;padding:0 6px}.gm-tb .lb,.gm-cnt{display:none}.gm-info{font-size:.75rem;margin:0 2px;white-space:nowrap}}
+.chip.hot{background:#fff3cd;border-color:#e0a800;color:#5c4400;font-weight:700}
+#rfAllInfo.warn{background:#fff3cd;border:1px solid #e0c36a;border-radius:8px;padding:6px 10px;color:#5c4400}
 </style>
 </head>
 <body>
@@ -373,7 +375,9 @@ table.dist td.r{text-align:right}
           <div class="mut" id="modeInfo" style="margin-top:2px"></div></div>
           <div id="sortMode" style="margin-top:6px"><span class="mut">Trier par : </span>
             <button type="button" class="chip" data-so="n" aria-pressed="true">Nombre de mails</button><button type="button" class="chip" data-so="u" aria-pressed="false">Mails non lus (les plus inutiles d’abord)</button><button type="button" class="chip" data-so="z" aria-pressed="false">Taille (Mo)</button>
-            <div class="mut" id="sortInfo" style="margin-top:2px"></div></div></div>
+            <div class="mut" id="sortInfo" style="margin-top:2px"></div></div>
+          <div id="rfAll" style="margin-top:8px"><button type="button" class="chip" id="rfAllBtn" title="Une seule recherche par analyse : retire les mails qui ne sont plus dans le périmètre (supprimés, archivés, corbeille). Nombres de mails exacts ; non lus, favoris, onglets et tailles estimés au prorata. Pour un recalcul exact d’un expéditeur : bouton ↻ de sa ligne.">↻ Actualiser toute l’analyse (rapide)</button>
+            <div class="mut" id="rfAllInfo" style="margin-top:4px"></div></div></div>
       <div id="senders"></div>
     </div>
   </div>
@@ -473,7 +477,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.82"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.83"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -558,6 +562,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.80", "Mode démonstration : bouton « Essayer la démonstration » (écran de configuration et écran de connexion, ou adresse terminée par ?demo). Fausse boîte Gmail construite à partir de demo/init.json du dépôt public, sans compte Google ni réseau ; mises à la corbeille conservées entre deux visites. Bouton « Restaurer les données de démo initiales » (efface aussi analyses, journal et courbes de la démo) et bouton « Ajouter de nouvelles données de démo » : colle un JSON produit par une IA (requête prête à copier incluse), le fusionne dans demo/init.json via GitHub (jeton Contents : Read and write sur le dépôt public) ou seulement dans ce navigateur. Désinscription et ouverture de Gmail désactivées en démo."],
   ["1.81", "Démo : la requête pour l’IA est désormais prête à l’emploi. Le profil souhaité (facultatif) et le nombre d’expéditeurs se saisissent dans la fenêtre « Ajouter de nouvelles données de démo » et sont insérés automatiquement dans la requête copiée ; sans rien saisir, l’IA génère un jeu varié d’environ 30 expéditeurs. La requête interdit à l’IA de poser des questions ou d’ajouter du texte autour du JSON."],
   ["1.82", "Démo : les boutons « Voir » ouvrent une fausse fenêtre Gmail (style repris de Gmail) au lieu du vrai Gmail. Liste défilante des mails de la recherche, barre de recherche fonctionnelle, navigation (réception, suivis, envoyés, corbeille, catégories, libellés), sélection (tous, aucun, lus, non lus, suivis, un par un), suppression d’un mail ou de la sélection avec « Annuler », suppression définitive depuis la corbeille, favoris, lu / non lu et lecture d’un mail. Les modifications sont conservées pendant la session de démo et effacées par « Restaurer les données de démo initiales »."],
+  ["1.83", "Bouton « ↻ Actualiser toute l’analyse (rapide) » dans l’encadré bleu de l’analyse : une seule recherche par analyse (limitée à sa période) pour retirer les mails qui ne sont plus dans le périmètre ; les nombres de mails sont exacts, les non lus, favoris, onglets et tailles sont estimés au prorata (« ≈ valeurs estimées » sur la ligne). Le ↻ d’une ligne reste le recalcul exact. Après un nettoyage rapide (ou des suppressions dans la fausse fenêtre Gmail de la démo), l’analyse est signalée comme périmée par un avertissement jaune et le bouton est mis en évidence."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -1086,7 +1091,7 @@ function buildPresets() {
       const bt = e.currentTarget; bt.disabled = true; const q0 = q();
       const nom = t + (age ? (chk.checked ? " (" + ageTxt(age) + ")" : " (sans condition d’ancienneté)") : "");
       const n = await trashQuery(q(), nom + "\nRequête Gmail : " + q() + (guardTxt() ? "\nÉpargnés automatiquement : " + guardTxt() + "." : ""), nom); // le nombre exact est recalculé ici, puis confirmé par l’utilisateur
-      bt.disabled = false; if (n) { r.querySelector(".cnt").textContent = "0"; r._n = 0; r._plus = ""; delete presetSizes[q0]; savePresetSizes(); showSz(); }
+      bt.disabled = false; if (n) { markStale(); r.querySelector(".cnt").textContent = "0"; r._n = 0; r._plus = ""; delete presetSizes[q0]; savePresetSizes(); showSz(); }
     };
     box.appendChild(r);
     rows.push([r, q]);
@@ -1206,7 +1211,7 @@ function restoreScan() {
 }
 let cumulView = false;
 $("#viewTxt").addEventListener("click", e => { const b = e.target.closest("[data-calc]"); if (b) computeSizes(cumulView ? scans : (scanData ? [scanData] : []), b); });
-function setBanner(html) { const b = $("#viewTitle"); $("#viewTxt").innerHTML = html || ""; b.hidden = !html; }
+function setBanner(html) { const b = $("#viewTitle"); $("#viewTxt").innerHTML = html || ""; b.hidden = !html; updStale(); }
 let senderMode = "scan", totCache = new Map(), totRun = 0; // « scan » = mails scannés ; « total » = tous les mails de l'expéditeur dans le périmètre
 const totKey = (email, scope) => scope + guardQ() + "|" + email;
 function updMode() { document.querySelectorAll("#viewMode [data-m]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === senderMode))); }
@@ -1307,6 +1312,7 @@ function showCumul(keepList) {
       Object.entries(o.cat || {}).forEach(([k, v]) => { x.cat = x.cat || {}; x.cat[k] = (x.cat[k] || 0) + v; });
     }
     if (!x.unsub && o.unsub) x.unsub = o.unsub;
+    if (o.est) x.est = true;
   }));
   const ov = cumulOverlaps(); ovlSet = ov.ids;
   const lab = d => esc(scanLabel(d)) + (d.date ? " (" + new Date(d.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) + ")" : "");
@@ -1612,6 +1618,7 @@ function badges(s) { // indicateurs tirés de l’analyse (sans requête supplé
   if (s.s) L.push("⭐ " + fmt(s.s) + " en favori");
   if (s.cat && n) { const [k, v] = Object.entries(s.cat).sort((a, b) => b[1] - a[1])[0] || []; if (CAT_LBL[k] && v / n >= 0.6) L.push("🗂 " + CAT_LBL[k]); }
   if (s.unsub) L.push("🔕 désinscription possible");
+  if (s.est) L.push("≈ valeurs estimées (↻ pour l’exact)");
   return L;
 }
 // score d’inutilité = non lus × part de non lus (u²/n) : 3 000 mails dont 98 % non lus passent avant 1 seul mail non lu ; favoris = en dernier ; sans statistiques = tout à la fin
@@ -1645,6 +1652,51 @@ async function fillTotals(list, scope) { // en arrière-plan : totaux des seuls 
     }
   }));
 }
+function markStale() { // des mails ont été supprimés hors des boutons d’une ligne : les chiffres de l’analyse peuvent être dépassés
+  if (!scans.length) return; const t = Date.now(); scans.forEach(d => { d.stale = t; }); saveScan(); updStale();
+}
+function updStale() {
+  const inf = $("#rfAllInfo"), btn = $("#rfAllBtn"); if (!inf) return;
+  const src = cumulView ? scans : (scanData ? [scanData] : []), st = src.some(d => d.stale);
+  inf.classList.toggle("warn", st); btn.classList.toggle("hot", st);
+  inf.textContent = st ? "⚠️ Des mails ont été mis à la corbeille depuis cette analyse (nettoyage rapide ou autre suppression) : certains chiffres de la liste sont peut-être dépassés. Cliquez sur « Actualiser » (rapide)."
+    : "À utiliser après des suppressions faites ailleurs. Rapide : nombres de mails exacts ; non lus, favoris, onglets et tailles estimés (≈).";
+}
+async function refreshAllFast() { // une seule recherche par analyse ; retire les mails disparus, estime le reste au prorata
+  if (running || rfBusy) return msg(rfBusy ? "Une actualisation est déjà en cours : attendez sa fin." : "Une analyse ou un calcul est en cours : attendez sa fin.", 1);
+  const all = (cumulView ? scans : [scanData]).filter(d => d && d.map && Object.keys(d.map).length);
+  if (!all.length) return msg("Aucune analyse à actualiser.", 1);
+  const T = all.filter(d => Object.values(d.map).every(o => o.ids && o.ids.length === o.n));
+  if (!T.length) return msg("Actualisation impossible : ces analyses ne mémorisent pas les identifiants des mails (analyse à refaire).", 1);
+  rfBusy = true; running = true; sizeRun = true; const btn = $("#rfAllBtn"); btn.disabled = true;
+  const p = Prog.start("Actualisation rapide de l’analyse", 1000);
+  try {
+    const sets = [];
+    for (let k = 0; k < T.length; k++) { // mails encore dans le périmètre, sur la période de l’analyse (même requête que « Voir scannés »)
+      const d = T[k], q = d.scope + (d.dmin ? " after:" + (Math.floor(d.dmin / 1000) - 1) + " before:" + (Math.floor(d.dmax / 1000) + 1) : "");
+      msg("Actualisation rapide : recherche des mails encore présents (" + (k + 1) + " / " + T.length + ")…");
+      const ids = await listIds(q, 500000, (n, est, more) => p.set(1000 * (k + Math.min(0.95, n / Math.max(1, more ? Math.max(est || 0, n + 500) : n))) / T.length, 1000));
+      sets.push(new Set(ids));
+    }
+    let before = 0, after = 0;
+    T.forEach((d, k) => Object.entries(d.map).forEach(([em, o]) => {
+      const old = o.n, keep = o.ids.filter(id => sets[k].has(id)); before += old;
+      if (keep.length !== old) {
+        const r = keep.length / old; o.ids = keep; o.n = keep.length;
+        if (o.t0) { o.u = Math.min(o.n, Math.round((o.u || 0) * r)); o.s = Math.min(o.n, Math.round((o.s || 0) * r)); const c = {}; Object.entries(o.cat || {}).forEach(([key, v]) => { const x = Math.round(v * r); if (x) c[key] = x; }); o.cat = c; }
+        if (o.zn) { o.z = Math.round((o.z || 0) * r); o.zn = o.zn >= old ? o.n : Math.round(o.zn * r); }
+        o.est = true;
+        if (!o.n) delete d.map[em];
+      }
+      after += o.n;
+    }));
+    T.forEach(d => { delete d.stale; }); saveScan(); cntCache.clear(); totCache.clear();
+    if (cumulView) showCumul(); else showScan(scanData);
+    msg("✅ Analyse actualisée : " + fmt(after) + " mail(s) restant(s) sur " + fmt(before) + " (" + fmt(before - after) + " retiré(s)). Non lus, favoris, onglets et tailles sont estimés (≈) ; le bouton ↻ d’une ligne donne le chiffre exact." + (T.length < all.length ? " " + fmt(all.length - T.length) + " analyse(s) ancienne(s) sans identifiants n’ont pas été actualisées." : ""));
+  } catch (e) { msg(e.message, 1); }
+  finally { p.done(); running = false; sizeRun = false; rfBusy = false; btn.disabled = false; }
+}
+$("#rfAllBtn").onclick = refreshAllFast;
 let rowMaker = null, rfBusy = false;
 async function metaMin(id) { // libellés, taille et date d’un mail ; null = le mail n’existe plus
   for (let t = 1; ; t++) {
@@ -1685,7 +1737,7 @@ async function refreshSender(s, row) { // relit les seuls mails de l’expédite
     let after = 0, size = 0;
     plans.forEach(pl => { // 3) mise à jour des analyses
       const o = pl.o; o.ids = pl.f.map(x => x[0]); o.n = o.ids.length;
-      o.u = 0; o.s = 0; o.z = 0; o.zn = 0; o.cat = {}; o.t0 = 0; o.t1 = 0;
+      o.u = 0; o.s = 0; o.z = 0; o.zn = 0; o.cat = {}; o.t0 = 0; o.t1 = 0; delete o.est;
       pl.f.forEach(([id, m]) => {
         const lb = m.labelIds || [], mt = +m.internalDate;
         if (mt) { o.t0 = o.t0 ? Math.min(o.t0, mt) : mt; o.t1 = Math.max(o.t1, mt); }
@@ -2216,7 +2268,7 @@ function gmReadOpen(id) { // affichage simplifié d’un mail
 }
 $("#gmClose").onclick = () => $("#gmDlg").close();
 $("#gmDlg").addEventListener("close", () => {
-  if (!gm.changed) return; loadStats();
+  if (!gm.changed) return; loadStats(); markStale();
   msg("Des mails ont été supprimés ou modifiés dans la fausse boîte Gmail. Cliquez sur ↻ sur la ligne concernée pour l’actualiser, ou refaites l’analyse.");
 });
 $("#gmList").addEventListener("scroll", () => { const L = $("#gmList"); if (gm.shown < gm.rows.length && L.scrollTop + L.clientHeight > L.scrollHeight - 400) gmMore(); });
