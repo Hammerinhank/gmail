@@ -109,6 +109,81 @@ table.dist td,table.dist th{padding:4px 6px;border-top:1px solid var(--bd)}
 table.dist th{border-top:0;font-weight:500;color:var(--mut);text-align:right}
 table.dist td.r{text-align:right}
 [hidden]{display:none!important}
+
+.gmdlg{padding:0;border:0;border-radius:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;background:#566989;color:#202124;overflow:hidden;font-family:"Google Sans",Roboto,Arial,sans-serif}
+.gmdlg[open]{display:flex;flex-direction:column}
+.gmdlg button{font:inherit;cursor:pointer;border:0;background:none;color:inherit;padding:0}
+.gmdlg .mut{color:#5f6368}
+.gm-note{background:#7b1fa2;color:#fff;font:600 .8rem system-ui,sans-serif;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.gm-note button{background:#fff;color:#7b1fa2;border-radius:6px;padding:3px 10px;font-weight:700}
+.gm-app{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.gm-top{height:64px;display:flex;align-items:center;gap:10px;padding:0 14px;color:#fff;flex:0 0 auto}
+.gm-top .gm-ico{font-size:1.2rem;width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.gm-top .gm-ico:hover{background:rgba(255,255,255,.15)}
+.gm-logo{display:flex;align-items:center;gap:8px;font-size:1.35rem;margin-right:30px}
+.gm-logo svg{background:#fff;border-radius:6px;padding:2px}
+.gm-search{flex:1;max-width:720px;height:46px;border-radius:24px;background:#7b8aa2;display:flex;align-items:center;gap:10px;padding:0 16px;color:#fff}
+.gm-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font-size:1rem;padding:0;width:auto}
+.gm-search input::placeholder{color:#e8ebf1}
+.gm-search input:focus{outline:0;box-shadow:none}
+.gm-up{background:#0a4a9a;color:#fff;border-radius:20px;padding:10px 18px;font-weight:600}
+.gm-av{width:34px;height:34px;border-radius:50%;background:#a142f4;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
+.gm-body{flex:1;min-height:0;display:flex;gap:0}
+.gm-side{width:256px;flex:0 0 256px;overflow-y:auto;color:#fff;padding:0 0 20px;position:relative}
+.gm-new{display:flex;align-items:center;gap:14px;background:#fff;color:#202124!important;border-radius:16px;height:56px;padding:0 24px 0 18px!important;margin:6px 0 14px 8px;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.gm-nav{display:flex;align-items:center;width:calc(100% - 8px);height:32px;border-radius:0 16px 16px 0;padding:0 14px 0 26px!important;gap:16px;text-align:left;color:#fff!important;font-size:.9rem}
+.gm-nav:hover{background:rgba(255,255,255,.14)}
+.gm-nav.on{background:#8996ad;font-weight:700}
+.gm-nav .i{width:20px;text-align:center;opacity:.9}
+.gm-nav .t{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gm-nav.b .t{font-weight:700}
+.gm-nav .c{font-size:.78rem;font-weight:700}
+.gm-lh{display:flex;justify-content:space-between;align-items:center;padding:22px 18px 6px 22px;font-size:1.05rem;font-weight:500}
+.gm-main{flex:1;min-width:0;background:#dde1e7;border-radius:16px;margin:0 16px 0 0;display:flex;flex-direction:column;overflow:hidden}
+.gm-tb{height:48px;flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid rgba(0,0,0,.08)}
+.gm-tb button{height:34px;min-width:34px;border-radius:17px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:.9rem}
+.gm-tb button:hover{background:rgba(0,0,0,.09)}
+.gm-tb .gm-del{color:#b3261e;font-weight:600}
+.gm-sel{position:relative;display:inline-flex;align-items:center;margin-right:4px}
+.gm-sel input{margin:0 2px 0 6px;width:18px;height:18px;accent-color:#444746}
+#gmMenu{position:absolute;top:36px;left:0;z-index:5;background:#fff;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:6px 0;min-width:130px}
+#gmMenu[hidden]{display:none}
+#gmMenu button{display:block;width:100%;text-align:left;border-radius:0;padding:6px 16px;height:auto}
+.gm-info{font-size:.85rem;color:#444746;margin:0 6px}
+.gm-cnt{margin-left:auto;font-size:.8rem;color:#444746;padding-right:6px}
+.gm-list{flex:1;min-height:0;overflow-y:auto}
+.gm-list[hidden],.gm-tb[hidden],#gmRead[hidden],#gmToast[hidden]{display:none}
+.gm-row{position:relative;display:grid;grid-template-columns:30px 30px 22px 190px minmax(0,1fr) 26px 74px;align-items:center;height:40px;padding:0 10px 0 12px;border-bottom:1px solid rgba(0,0,0,.07);font-size:.875rem;cursor:pointer;background:rgba(0,0,0,.035)}
+.gm-row.un{background:transparent;font-weight:700}
+.gm-row:hover{box-shadow:inset 1px 0 0 #dadce0,inset -1px 0 0 #dadce0,0 1px 2px rgba(60,64,67,.3);z-index:1}
+.gm-row.sel{background:#c2d3f0}
+.gm-ck{margin:0;width:16px;height:16px;accent-color:#444746;cursor:pointer}
+.gm-star{font-size:1.1rem;color:#80868b}
+.gm-star.on{color:#f4b400}
+.gm-imp{color:#9aa0a6;font-weight:400}
+.gm-imp.on{color:#f4b400}
+.gm-from{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px}
+.gm-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gm-snip{font-weight:400;color:#5f6368}
+.gm-date{text-align:right;font-size:.78rem}
+.gm-hov{display:none;position:absolute;right:8px;top:0;height:100%;align-items:center;gap:2px;background:inherit;padding-left:10px}
+.gm-row:hover .gm-hov{display:flex}
+.gm-row:hover .gm-date{visibility:hidden}
+.gm-hov button{width:34px;height:34px;border-radius:50%;font-size:1rem}
+.gm-hov button:hover{background:rgba(0,0,0,.1)}
+.gm-empty{padding:40px;text-align:center;color:#5f6368}
+#gmRead{flex:1;min-height:0;overflow-y:auto}
+.gm-rtb{height:48px;display:flex;align-items:center;gap:4px;padding:0 14px;border-bottom:1px solid rgba(0,0,0,.08)}
+.gm-rtb button{width:38px;height:34px;border-radius:17px;font-size:1.05rem}
+.gm-rtb button:hover{background:rgba(0,0,0,.09)}
+.gm-rbody{padding:18px 28px 40px;max-width:900px;line-height:1.5}
+.gm-rbody h2{font-size:1.4rem;font-weight:400;margin:0 0 16px}
+.gm-rfrom{display:flex;gap:12px;align-items:center;margin-bottom:18px;font-size:.88rem}
+.gm-attch{display:inline-block;border:1px solid #bbb;border-radius:8px;padding:6px 12px;background:#fff;cursor:pointer}
+#gmToast{position:absolute;left:24px;bottom:22px;background:#202124;color:#fff;border-radius:6px;padding:12px 18px;display:flex;gap:22px;align-items:center;z-index:20;box-shadow:0 3px 10px rgba(0,0,0,.4);font-size:.9rem}
+#gmToast button{color:#8ab4f8;font-weight:700}
+.gm-fake{cursor:default}
+@media (max-width:820px){.gm-side{display:none;position:absolute;left:0;top:0;bottom:0;z-index:10;background:#566989;width:250px;box-shadow:4px 0 12px rgba(0,0,0,.4)}.gm-side.open{display:block}.gm-main{margin:0 6px}.gm-row{grid-template-columns:28px 28px 120px minmax(0,1fr) 60px}.gm-imp,.gm-att{display:none}.gm-up,.gm-top .gm-help{display:none}.gm-logo{margin-right:2px}.gm-logo>span{display:none}.gm-top{gap:4px;padding:0 6px}.gm-search{min-width:0;padding:0 12px}.gm-tb{gap:2px;padding:0 6px}.gm-tb .lb,.gm-cnt{display:none}.gm-info{font-size:.75rem;margin:0 2px;white-space:nowrap}}
 </style>
 </head>
 <body>
@@ -305,6 +380,30 @@ table.dist td.r{text-align:right}
 </section>
 </main>
 
+<dialog id="gmDlg" class="gmdlg">
+  <div class="gm-note"><span>🧪 Simulation de l’affichage de Gmail : mails factices de la démo. Les suppressions ne concernent que la démo.</span><button type="button" id="gmClose">✕ Fermer</button></div>
+  <div class="gm-app">
+    <header class="gm-top">
+      <button type="button" class="gm-ico" id="gmHam" title="Menu principal">☰</button>
+      <span class="gm-logo"><svg width="38" height="28" viewBox="0 0 38 28" aria-hidden="true"><path d="M3 4v20h6.5V11.5L19 19l9.500-7.500V24H35V4h-2.500L19 14.500 5.500 4z" fill="#ea4335"/><path d="M3 4l16 12.500L35 4" fill="none" stroke="#c5221f" stroke-width="2.500"/></svg><span>Gmail</span></span>
+      <div class="gm-search"><span>🔍</span><input id="gmQ" type="text" placeholder="Rechercher dans les messages" autocomplete="off" spellcheck="false"><button type="button" id="gmClr" title="Effacer la recherche">✕</button></div>
+      <button type="button" class="gm-ico gm-help gm-fake" title="Assistance">❔</button>
+      <button type="button" class="gm-ico gm-fake" title="Paramètres">⚙</button>
+      <button type="button" class="gm-up gm-fake">Mettre à niveau</button>
+      <span class="gm-av">D</span>
+    </header>
+    <div class="gm-body">
+      <nav class="gm-side"><button type="button" class="gm-new gm-fake"><span>✏️</span> Nouveau message</button><div id="gmNav"></div></nav>
+      <div class="gm-main">
+        <div class="gm-tb" id="gmTb"></div>
+        <div class="gm-list" id="gmList"></div>
+        <div id="gmRead" hidden></div>
+      </div>
+    </div>
+    <div id="gmToast" hidden></div>
+  </div>
+</dialog>
+
 <dialog id="demoDlg" style="max-width:760px">
   <h2>Ajouter de nouvelles données de démo</h2>
   <p class="mut">Les nouveaux expéditeurs sont ajoutés à la boîte de démo en cours et aux données d’origine (<code>demo/init.json</code>) : ils réapparaîtront à chaque « Restaurer ». Un expéditeur dont l’adresse existe déjà est remplacé.</p>
@@ -374,7 +473,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.81"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.82"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -458,6 +557,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.79", "Champ « Compte à traiter » élargi (pleine largeur disponible, jusqu’à environ 36 caractères) pour que l’adresse e-mail ne soit plus tronquée."],
   ["1.80", "Mode démonstration : bouton « Essayer la démonstration » (écran de configuration et écran de connexion, ou adresse terminée par ?demo). Fausse boîte Gmail construite à partir de demo/init.json du dépôt public, sans compte Google ni réseau ; mises à la corbeille conservées entre deux visites. Bouton « Restaurer les données de démo initiales » (efface aussi analyses, journal et courbes de la démo) et bouton « Ajouter de nouvelles données de démo » : colle un JSON produit par une IA (requête prête à copier incluse), le fusionne dans demo/init.json via GitHub (jeton Contents : Read and write sur le dépôt public) ou seulement dans ce navigateur. Désinscription et ouverture de Gmail désactivées en démo."],
   ["1.81", "Démo : la requête pour l’IA est désormais prête à l’emploi. Le profil souhaité (facultatif) et le nombre d’expéditeurs se saisissent dans la fenêtre « Ajouter de nouvelles données de démo » et sont insérés automatiquement dans la requête copiée ; sans rien saisir, l’IA génère un jeu varié d’environ 30 expéditeurs. La requête interdit à l’IA de poser des questions ou d’ajouter du texte autour du JSON."],
+  ["1.82", "Démo : les boutons « Voir » ouvrent une fausse fenêtre Gmail (style repris de Gmail) au lieu du vrai Gmail. Liste défilante des mails de la recherche, barre de recherche fonctionnelle, navigation (réception, suivis, envoyés, corbeille, catégories, libellés), sélection (tous, aucun, lus, non lus, suivis, un par un), suppression d’un mail ou de la sélection avec « Annuler », suppression définitive depuis la corbeille, favoris, lu / non lu et lecture d’un mail. Les modifications sont conservées pendant la session de démo et effacées par « Restaurer les données de démo initiales »."],
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -1822,7 +1922,8 @@ function demoBuild(senders) { // reconstruit toute la boîte à partir des donn�
   demoLabels = new Map(); demoMsgs = [];
   senders.forEach(s => { for (const m of demoExpand(s)) demoMsgs.push(m); });
   demoIndex();
-  Object.entries(demoMods).forEach(([id, l]) => { const m = demoById.get(id); if (m) m.labels = l.slice(); });
+  Object.entries(demoMods).forEach(([id, l]) => { const m = demoById.get(id); if (m && l) m.labels = l.slice(); });
+  if (Object.values(demoMods).some(l => l === null)) { demoMsgs = demoMsgs.filter(m => demoMods[m.id] !== null); demoIndex(); } // mails supprimés définitivement pendant la session
 }
 const demoSaveSoon = () => { clearTimeout(demoSaveT); demoSaveT = setTimeout(() => { demoSaveT = null; demoStore.set("mods", demoMods); }, 400); };
 window.addEventListener("pagehide", () => { if (DEMO_ON && demoSaveT) { clearTimeout(demoSaveT); demoSaveT = null; demoStore.set("mods", demoMods); } });
@@ -1889,8 +1990,7 @@ async function demoApi(path, opt = {}) { // imite les appels Gmail utilisés : p
   }
   if (p === "messages/batchModify" && method === "POST") {
     const b = JSON.parse(opt.body || "{}"), add = b.addLabelIds || [], rem = b.removeLabelIds || [];
-    (b.ids || []).forEach(id => { const m = demoById.get(id); if (!m) return; const s = new Set(m.labels); rem.forEach(l => s.delete(l)); add.forEach(l => s.add(l)); m.labels = [...s]; demoMods[id] = m.labels.slice(); });
-    demoVer++; demoLast = null; demoSaveSoon(); return null;
+    demoModify(b.ids || [], add, rem); return null;
   }
   if (p === "messages") {
     const q = P.get("q") || "", all = P.get("includeSpamTrash") === "true", max = Math.min(500, +P.get("maxResults") || 100), off = +(P.get("pageToken") || 0) || 0, key = q + "|" + all + "|" + demoVer;
@@ -1964,7 +2064,9 @@ $("#demoQuit").onclick = () => { try { history.replaceState(null, "", location.p
 $("#demoGo").onclick = demoStart; $("#demoGo2").onclick = demoStart;
 document.addEventListener("click", e => { // en démo, aucun lien ne doit ouvrir le vrai Gmail
   if (!DEMO_ON) return; const a = e.target.closest && e.target.closest("a[href]");
-  if (a && /mail\.google\.com/i.test(a.href)) { e.preventDefault(); msg("🧪 Démo : l’ouverture de Gmail est désactivée (données factices)."); }
+  if (a && /mail\.google\.com/i.test(a.href)) { // « Voir » : fausse fenêtre Gmail avec la recherche du lien
+    e.preventDefault(); const mm = a.href.match(/#search\/(.*)$/); let q = null; if (mm) { try { q = decodeURIComponent(mm[1]); } catch (x) { q = mm[1]; } } gmOpen(q);
+  }
 }, true);
 
 // --- Ajout de nouvelles données de démo (JSON produit par une IA) ---
@@ -2031,6 +2133,138 @@ $("#demoFile").onchange = async e => { const f = e.target.files[0]; if (!f) retu
 $("#demoAddGh").onclick = () => demoAdd(true);
 $("#demoAddLocal").onclick = () => demoAdd(false);
 $("#demoDlgClose").onclick = () => $("#demoDlg").close();
+
+// --- Fausse fenêtre Gmail : s’ouvre à la place de Gmail quand on clique sur un bouton « Voir » en démo ---
+const GM_SNIP = ["Bonjour, nous vous écrivons au sujet de votre compte et de vos dernières activités…", "Voir la version en ligne si ce message ne s’affiche pas correctement…", "Cliquez ici pour consulter le détail de votre commande et le suivi de livraison…", "Découvrez nos nouveautés de la semaine et profitez de notre offre exclusive…", "Ceci est un message automatique, merci de ne pas y répondre directement…", "Votre avis nous intéresse : répondez à notre court questionnaire en deux minutes…", "Un nouveau document est disponible dans votre espace personnel, connectez-vous pour…", "Rappel : votre rendez-vous approche, pensez à confirmer votre présence avant…", "Merci pour votre message, je reviens vers vous dès que possible avec les éléments…", "Les actualités de la semaine : les sujets à ne pas manquer et nos sélections…", "Vous recevez cet e-mail car vous êtes inscrit(e) à notre lettre d’information…", "Nous avons détecté une nouvelle connexion à votre compte depuis un autre appareil…"];
+const GM_BODY = ["Bonjour,\n\nNous espérons que ce message vous trouve en pleine forme. Ce texte est entièrement fictif : il sert uniquement à simuler l’affichage d’un mail dans la démonstration de Ménage Gmail.", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio praesent libero, sed cursus ante dapibus diam. Sed nisi nulla quis sem at nibh elementum imperdiet.", "Retrouvez dans cet envoi l’ensemble des informations utiles : les dates à retenir, les liens pratiques et les dernières nouveautés de la semaine. Aucun de ces éléments n’est réel.", "Duis sagittis ipsum, praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa vestibulum lacinia arcu eget nulla class aptent taciti sociosqu.", "Pour toute question, répondez simplement à ce message ou rendez-vous dans votre espace client. Merci de votre confiance et à très bientôt.\n\nCordialement,\nL’équipe"];
+const gm = { q: "in:inbox", box: "", rows: [], shown: 0, sel: new Set(), undo: null, openId: null, changed: false, toastT: null };
+const gmNorm = s => s.toLowerCase().replace(/[\s/]+/g, "-"), gmIsTrash = () => /(?:^|[\s(])in:trash\b/i.test(gm.q);
+function gmDate(t) { const d = new Date(t), n = new Date(); if (d.toDateString() === n.toDateString()) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); if (d.getFullYear() === n.getFullYear()) return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); return d.toLocaleDateString("fr-FR"); }
+const gmWho = m => m.labels.includes("SENT") ? "À : " + m.to.split("@")[0] : m.from.replace(/\s*<[^>]*>\s*$/, "");
+// modifications de la fausse boîte (partagées avec l’API factice : conservées dans la session de démo, oubliées par « Restaurer »)
+function demoModify(ids, add, rem) {
+  const prev = new Map();
+  ids.forEach(id => { const m = demoById.get(id); if (!m) return; prev.set(id, m.labels.slice()); const s = new Set(m.labels); rem.forEach(l => s.delete(l)); add.forEach(l => s.add(l)); m.labels = [...s]; demoMods[id] = m.labels.slice(); });
+  demoVer++; demoLast = null; demoSaveSoon(); return prev;
+}
+function demoRestore(prev) { prev.forEach((l, id) => { const m = demoById.get(id); if (m) { m.labels = l.slice(); demoMods[id] = l.slice(); } }); demoVer++; demoLast = null; demoSaveSoon(); }
+function demoPurge(ids) { const set = new Set(ids), rem = []; demoMsgs = demoMsgs.filter(m => set.has(m.id) ? (rem.push(m), false) : true); ids.forEach(id => { demoMods[id] = null; }); demoIndex(); demoSaveSoon(); return rem; }
+function demoUnpurge(rem) { rem.forEach(m => { demoMsgs.push(m); demoMods[m.id] = m.labels.slice(); }); demoIndex(); demoSaveSoon(); }
+
+function gmOpen(q) { // q = recherche Gmail reçue du lien « Voir » (null : boîte de réception)
+  gm.changed = false; gm.undo = null; $("#gmToast").hidden = true;
+  gmRun(q == null ? "in:inbox" : q, q == null ? "" : q); $("#gmDlg").showModal();
+}
+function gmRun(q, box) { gm.q = q; gm.box = box; $("#gmQ").value = box; gm.sel = new Set(); gm.openId = null; gmRerender(false); }
+function gmRerender(keepScroll) { // relance la recherche ; garde la position et le nombre de lignes déjà affichées si demandé
+  const L = $("#gmList"), st = L.scrollTop, keep = keepScroll ? gm.shown : 0;
+  gm.rows = demoMsgs.filter(demoPred(gm.q, false));
+  const alive = new Set(gm.rows.map(m => m.id)); gm.sel.forEach(id => { if (!alive.has(id)) gm.sel.delete(id); });
+  gm.shown = 0; L.innerHTML = ""; $("#gmRead").hidden = true; L.hidden = false; $("#gmTb").hidden = false;
+  gmMore(Math.max(100, keep)); L.scrollTop = keepScroll ? st : 0; gmToolbar(); gmNav();
+}
+function gmMore(n = 100) {
+  const L = $("#gmList"), end = Math.min(gm.rows.length, gm.shown + n); let h = "";
+  for (let i = gm.shown; i < end; i++) h += gmRowHtml(gm.rows[i]);
+  if (!gm.rows.length) h = "<div class=\"gm-empty\">Aucun message ne correspond à cette recherche.</div>";
+  L.insertAdjacentHTML("beforeend", h); gm.shown = end;
+  const c = $("#gmCnt"); if (c) c.textContent = gm.rows.length ? "1–" + fmt(gm.shown) + " sur " + fmt(gm.rows.length) : "";
+}
+function gmRowHtml(m) {
+  const un = m.labels.includes("UNREAD"), st = m.labels.includes("STARRED"), on = gm.sel.has(m.id), snip = GM_SNIP[demoHash(m.id) % GM_SNIP.length];
+  return "<div class=\"gm-row" + (un ? " un" : "") + (on ? " sel" : "") + "\" data-id=\"" + esc(m.id) + "\"><input type=\"checkbox\" class=\"gm-ck\" aria-label=\"Sélectionner\"" + (on ? " checked" : "") + "><button type=\"button\" class=\"gm-star" + (st ? " on" : "") + "\" data-a=\"star\" title=\"Suivi\">" + (st ? "★" : "☆") + "</button><span class=\"gm-imp" + (m.labels.includes("IMPORTANT") ? " on" : "") + "\">»</span><span class=\"gm-from\">" + esc(gmWho(m)) + "</span><span class=\"gm-sub\"><b>" + esc(m.subject) + "</b><span class=\"gm-snip\"> - " + esc(snip) + "</span></span><span class=\"gm-att\">" + (m.att ? "📎" : "") + "</span><span class=\"gm-date\">" + esc(gmDate(m.t)) + "</span><span class=\"gm-hov\"><button type=\"button\" data-a=\"del\" title=\"" + (gmIsTrash() ? "Supprimer définitivement" : "Supprimer") + "\">🗑</button><button type=\"button\" data-a=\"read\" title=\"" + (un ? "Marquer comme lu" : "Marquer comme non lu") + "\">✉</button></span></div>";
+}
+function gmToolbar() {
+  const n = gm.sel.size, tr = gmIsTrash();
+  $("#gmTb").innerHTML = "<span class=\"gm-sel\"><input type=\"checkbox\" id=\"gmAll\" aria-label=\"Tout sélectionner\"><button type=\"button\" data-t=\"menu\" title=\"Sélectionner\">▾</button><div id=\"gmMenu\" hidden>" + [["all", "Tous"], ["none", "Aucun"], ["read", "Lus"], ["unread", "Non lus"], ["starred", "Suivis"], ["unstarred", "Non suivis"]].map(x => "<button type=\"button\" data-s=\"" + x[0] + "\">" + x[1] + "</button>").join("") + "</div></span>"
+    + "<button type=\"button\" data-t=\"refresh\" title=\"Actualiser\">↻</button>"
+    + (n ? "<span class=\"gm-info\">" + fmt(n) + " sélectionné(s)</span>" + (tr ? "<button type=\"button\" data-t=\"restore\" title=\"Restaurer dans la boîte de réception\">↩<span class=\"lb\"> Restaurer</span></button>" : "") + "<button type=\"button\" data-t=\"del\" class=\"gm-del\" title=\"" + (tr ? "Supprimer définitivement" : "Supprimer") + "\">🗑<span class=\"lb\"> " + (tr ? "Supprimer définitivement" : "Supprimer") + "</span></button><button type=\"button\" data-t=\"markread\" title=\"Marquer comme lu\">✉<span class=\"lb\"> Lu</span></button><button type=\"button\" data-t=\"markunread\" title=\"Marquer comme non lu\">✉<span class=\"lb\"> Non lu</span></button>" : "")
+    + "<button type=\"button\" class=\"gm-fake\" title=\"Plus\">⋮</button><span class=\"gm-cnt\" id=\"gmCnt\"></span>";
+  const a = $("#gmAll"); a.checked = n > 0 && n === gm.rows.length; a.indeterminate = n > 0 && n < gm.rows.length;
+  $("#gmCnt").textContent = gm.rows.length ? "1–" + fmt(gm.shown) + " sur " + fmt(gm.rows.length) : "";
+}
+function gmNav() {
+  const U = { inbox: 0, social: 0, updates: 0, forums: 0, promotions: 0 }, LU = new Map();
+  demoMsgs.forEach(m => { if (!m.labels.includes("UNREAD")) return; if (m.labels.includes("INBOX")) { U.inbox++; if (m.labels.includes("CATEGORY_SOCIAL")) U.social++; if (m.labels.includes("CATEGORY_UPDATES")) U.updates++; if (m.labels.includes("CATEGORY_FORUMS")) U.forums++; if (m.labels.includes("CATEGORY_PROMOTIONS")) U.promotions++; } m.labels.forEach(l => { if (l.startsWith("Label_")) LU.set(l, (LU.get(l) || 0) + 1); }); });
+  const items = [["📥", "Boîte de réception", "in:inbox", U.inbox], ["☆", "Messages suivis", "is:starred"], ["🕐", "En attente", "is:snoozed"], ["➤", "Messages envoyés", "in:sent"], ["📄", "Brouillons", "in:drafts"], ["✉", "Tous les messages", ""], ["🗑", "Corbeille", "in:trash"], ["🛍", "Achats", "category:purchases"], ["👥", "Réseaux sociaux", "category:social", U.social], ["ℹ", "Notifications", "category:updates", U.updates], ["💬", "Forums", "category:forums", U.forums], ["🏷", "Promotions", "category:promotions", U.promotions]];
+  const row = (ic, nm, q, c, cls) => "<button type=\"button\" class=\"gm-nav" + (c ? " b" : "") + (gm.q === q && !gm.box ? " on" : "") + (cls || "") + "\" data-q=\"" + esc(q) + "\"><span class=\"i\">" + ic + "</span><span class=\"t\">" + esc(nm) + "</span>" + (c ? "<span class=\"c\">" + fmt(c) + "</span>" : "") + "</button>";
+  $("#gmNav").innerHTML = items.map(x => row(x[0], x[1], x[2], x[3])).join("") + "<button type=\"button\" class=\"gm-nav gm-fake\"><span class=\"i\">⌄</span><span class=\"t\">Plus</span></button><div class=\"gm-lh\">Libellés <span class=\"gm-fake\">+</span></div>"
+    + [...demoLabels].sort((a, b) => a[0].localeCompare(b[0], "fr")).map(([nm, id]) => row("🏷", nm, "label:" + gmNorm(nm), LU.get(id) || 0)).join("");
+}
+function gmToast(t, undo) {
+  const el = $("#gmToast"); el.innerHTML = "<span>" + esc(t) + "</span>" + (undo ? "<button type=\"button\" data-t=\"undo\">Annuler</button>" : ""); el.hidden = false;
+  clearTimeout(gm.toastT); gm.toastT = setTimeout(() => { el.hidden = true; if (undo) gm.undo = null; }, 9000);
+}
+function gmDelete(ids) {
+  if (!ids.length) return;
+  if (gmIsTrash()) { gm.undo = { purge: demoPurge(ids) }; gmToast(fmt(ids.length) + " message(s) supprimé(s) définitivement.", true); }
+  else { gm.undo = { prev: demoModify(ids, ["TRASH"], ["INBOX"]) }; gmToast(fmt(ids.length) + " conversation(s) placée(s) dans la corbeille.", true); }
+  gm.changed = true; ids.forEach(id => gm.sel.delete(id)); gmRerender(true);
+}
+function gmMark(ids, read) { if (!ids.length) return; demoModify(ids, read ? [] : ["UNREAD"], read ? ["UNREAD"] : []); gm.changed = true; gmRerender(true); }
+function gmSelect(kind) {
+  const f = { all: () => true, none: () => false, read: m => !m.labels.includes("UNREAD"), unread: m => m.labels.includes("UNREAD"), starred: m => m.labels.includes("STARRED"), unstarred: m => !m.labels.includes("STARRED") }[kind];
+  gm.sel = new Set(gm.rows.filter(f).map(m => m.id)); gmSync(); gmToolbar();
+}
+function gmSync() { $("#gmList").querySelectorAll(".gm-row").forEach(r => { const on = gm.sel.has(r.dataset.id); r.classList.toggle("sel", on); const c = r.querySelector(".gm-ck"); if (c) c.checked = on; }); }
+function gmReadOpen(id) { // affichage simplifié d’un mail
+  const m = demoById.get(id); if (!m) return; gm.openId = id;
+  if (m.labels.includes("UNREAD")) { demoModify([id], [], ["UNREAD"]); gm.changed = true; }
+  const h = demoHash(id), body = [GM_BODY[h % GM_BODY.length], GM_BODY[(h >> 3) % GM_BODY.length], GM_BODY[(h >> 6) % GM_BODY.length]].filter((x, i, a) => a.indexOf(x) === i);
+  $("#gmRead").innerHTML = "<div class=\"gm-rtb\"><button type=\"button\" data-t=\"back\" title=\"Retour à la liste\">←</button><button type=\"button\" data-t=\"rdel\" title=\"" + (gmIsTrash() ? "Supprimer définitivement" : "Supprimer") + "\">🗑</button><button type=\"button\" data-t=\"runread\" title=\"Marquer comme non lu\">✉</button></div><div class=\"gm-rbody\"><h2>" + esc(m.subject) + "</h2><div class=\"gm-rfrom\"><span class=\"gm-av\">" + esc(gmWho(m).replace(/^À : /, "").charAt(0).toUpperCase() || "?") + "</span><div><b>" + esc(gmWho(m)) + "</b> <span class=\"mut\">&lt;" + esc(m.fromEmail) + "&gt;</span><br><span class=\"mut\">à " + (m.labels.includes("SENT") ? esc(m.to) : "moi") + " · " + esc(new Date(m.t).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })) + "</span></div></div>" + body.map(p => "<p>" + esc(p).replace(/\n/g, "<br>") + "</p>").join("") + (m.att ? "<p class=\"gm-fake gm-attch\">📎 piece-jointe-fictive.pdf</p>" : "") + (m.unsub ? "<p class=\"mut\">Vous recevez ce message car vous êtes inscrit(e). <u class=\"gm-fake\">Se désinscrire</u></p>" : "") + "</div>";
+  $("#gmList").hidden = true; $("#gmTb").hidden = true; $("#gmRead").hidden = false; gmNav();
+}
+$("#gmClose").onclick = () => $("#gmDlg").close();
+$("#gmDlg").addEventListener("close", () => {
+  if (!gm.changed) return; loadStats();
+  msg("Des mails ont été supprimés ou modifiés dans la fausse boîte Gmail. Cliquez sur ↻ sur la ligne concernée pour l’actualiser, ou refaites l’analyse.");
+});
+$("#gmList").addEventListener("scroll", () => { const L = $("#gmList"); if (gm.shown < gm.rows.length && L.scrollTop + L.clientHeight > L.scrollHeight - 400) gmMore(); });
+$("#gmList").addEventListener("click", e => {
+  const row = e.target.closest(".gm-row"); if (!row) return; const id = row.dataset.id, a = e.target.closest("[data-a]"), m = demoById.get(id);
+  if (e.target.classList.contains("gm-ck")) { if (e.target.checked) gm.sel.add(id); else gm.sel.delete(id); row.classList.toggle("sel", e.target.checked); gmToolbar(); return; }
+  if (a && m) {
+    if (a.dataset.a === "star") { demoModify([id], m.labels.includes("STARRED") ? [] : ["STARRED"], m.labels.includes("STARRED") ? ["STARRED"] : []); gm.changed = true; const on = m.labels.includes("STARRED"); a.classList.toggle("on", on); a.textContent = on ? "★" : "☆"; }
+    else if (a.dataset.a === "del") gmDelete([id]);
+    else if (a.dataset.a === "read") gmMark([id], m.labels.includes("UNREAD"));
+    return;
+  }
+  gmReadOpen(id);
+});
+$("#gmTb").addEventListener("click", e => {
+  const s = e.target.closest("[data-s]"), t = e.target.closest("[data-t]"), ids = () => [...gm.sel];
+  if (s) { gmSelect(s.dataset.s); return; }
+  if (e.target.id === "gmAll") { gmSelect(gm.sel.size === gm.rows.length && gm.rows.length ? "none" : "all"); return; }
+  if (!t) return;
+  switch (t.dataset.t) {
+    case "menu": $("#gmMenu").hidden = !$("#gmMenu").hidden; break;
+    case "refresh": gmRerender(true); break;
+    case "del": gmDelete(ids()); break;
+    case "restore": { const x = ids(); gm.undo = { prev: demoModify(x, ["INBOX"], ["TRASH"]) }; gm.changed = true; x.forEach(id => gm.sel.delete(id)); gmToast(fmt(x.length) + " conversation(s) restaurée(s) dans la boîte de réception.", true); gmRerender(true); break; }
+    case "markread": gmMark(ids(), true); break;
+    case "markunread": gmMark(ids(), false); break;
+  }
+});
+$("#gmRead").addEventListener("click", e => {
+  const t = e.target.closest("[data-t]"); if (!t) return; const id = gm.openId;
+  if (t.dataset.t === "back") gmRerender(true);
+  else if (t.dataset.t === "rdel") { gm.sel = new Set([id]); gmDelete([id]); }
+  else if (t.dataset.t === "runread") { demoModify([id], ["UNREAD"], []); gm.changed = true; gmRerender(true); }
+});
+$("#gmNav").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (b) { gmRun(b.dataset.q, ""); $("#gmDlg").querySelector(".gm-side").classList.remove("open"); } });
+$("#gmToast").addEventListener("click", e => {
+  if (!e.target.closest("[data-t=undo]") || !gm.undo) return;
+  if (gm.undo.prev) demoRestore(gm.undo.prev); else demoUnpurge(gm.undo.purge);
+  gm.undo = null; $("#gmToast").hidden = true; gm.changed = true; gmRerender(true);
+});
+$("#gmQ").addEventListener("keydown", e => { if (e.key === "Enter") { const v = $("#gmQ").value.trim(); gmRun(v || "in:inbox", v); } });
+$("#gmClr").onclick = () => { $("#gmQ").value = ""; gmRun("in:inbox", ""); };
+$("#gmHam").onclick = () => $("#gmDlg").querySelector(".gm-side").classList.toggle("open");
+$("#gmDlg").addEventListener("click", e => { // éléments décoratifs ; fermeture du menu de sélection
+  if (!e.target.closest(".gm-sel")) { const m = $("#gmMenu"); if (m) m.hidden = true; }
+  if (e.target.closest(".gm-fake")) gmToast("🧪 Démo : cette fonction de Gmail n’est pas simulée.", false);
+});
+
 
 render();
 if (/[?&]demo(?:[=&]|$)/.test(location.search) || location.hash === "#demo") demoStart(); // adresse ...?demo : démarrage direct en démo
