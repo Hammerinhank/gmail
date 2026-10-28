@@ -97,6 +97,29 @@ dialog li{margin:8px 0}
 .chip:hover{border-color:var(--ac);background:rgba(26,115,232,.08)}
 .sf .go{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
 .sf .go .btn{margin:0}
+.sx{display:grid;gap:12px}
+.sx-step{background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:14px 16px}
+.sx-h{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:1.05rem;line-height:1.3}
+.sx-h small{font-weight:400;color:var(--mut);font-size:.88rem}
+.sx-n{display:inline-flex;align-items:center;justify-content:center;flex:none;width:26px;height:26px;border-radius:50%;background:var(--ac);color:var(--card);font-size:.9rem;font-weight:700}
+.sx-sub{margin:16px 0 8px;font-size:.76rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.sx-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 18px}
+.sx-f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.sx-f>label,.sx-lab{font-weight:600;font-size:.92rem}
+.sx-f small{color:var(--mut);font-size:.84rem;line-height:1.35}
+.sx-f select,.sx-f input[type=number]{width:100%;box-sizing:border-box;min-height:42px;padding:9px 10px;background:var(--card)}
+.sx-wide select{max-width:480px}
+.sx-unit{display:flex;align-items:center;gap:8px}
+.sx-unit input{flex:1;min-width:0}
+.sx-unit span{color:var(--mut)}
+.sx-rng{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:10px;max-width:500px}
+.sx-mini input{font-size:1rem}
+.sx-mini{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--mut);min-width:0}
+.sx-note{margin:14px 0 0;font-size:.84rem;line-height:1.4;color:var(--mut)}
+.sx #chips{display:flex;flex-wrap:wrap;gap:6px}
+.sx #chips .chip{margin:0}
+.sx-go{padding:2px 2px 0;gap:8px 16px}
+.sx-go #scan{padding:11px 28px;font-size:1rem;font-weight:600}
 details.how{margin:10px 0 4px}
 details.how summary{cursor:pointer;color:var(--ac);font-size:.95rem}
 details.how ul{margin:8px 0 0;padding-left:20px}
@@ -313,34 +336,51 @@ table.dist td.r{text-align:right}
     <div class="card">
       <h2>Expéditeurs les plus bavards</h2>
       <p class="mut" style="margin:0 0 4px">Repère les expéditeurs qui vous envoient le plus de mails, pour nettoyer en priorité. Choisissez où chercher et quels messages analyser, puis lancez l’analyse.</p>
-      <div class="sf">
-        <div class="fld">
-          <label class="lb" for="scope">1 · Où chercher ?</label>
-          <select id="scope" style="width:100%;max-width:420px" title="Périmètre analysé : boîte de réception, tous les messages, archivés, onglets Gmail ou un de vos libellés"></select>
-          <label class="mut" style="display:block;margin-top:8px">Ancienneté minimale des mails concernés :
-            <select id="scopeAge" style="max-width:100%" title="Un seul réglage pour l’analyse ET la suppression : les mails plus récents sont exclus de la liste, ne sont pas comptés et ne peuvent pas être mis à la corbeille depuis cette section (boutons Scannés et Tous)">
-              <option value="">Aucune limite : tous les mails, quel que soit leur âge</option>
-              <option value="6m">Uniquement les mails de plus de 6 mois (les plus récents sont exclus)</option>
-              <option value="1y">Uniquement les mails de plus d’un an (les plus récents sont exclus)</option>
-              <option value="2y">Uniquement les mails de plus de 2 ans (les plus récents sont exclus)</option>
-              <option value="5y">Uniquement les mails de plus de 5 ans (les plus récents sont exclus)</option>
-            </select></label>
-          <label class="mut" style="display:block;margin-top:8px">Taille minimale des mails concernés :
-            <input type="number" id="scopeSize" min="0" step="1" value="0" style="width:90px" title="0 = aucun filtre. Sinon, seuls les mails de plus de cette taille sont analysés (et supprimables depuis cette section) : requête Gmail larger:NM"> Mo
-            <span class="mut">(0 = aucun filtre sur la taille ; sinon l’analyse ne contient que des mails plus gros que ce seuil)</span></label>
-          <p class="mut" style="margin:4px 0 0">Ce réglage vaut pour l’analyse et pour la suppression (Scannés, Tous). Pour une analyse déjà affichée, c’est l’ancienneté utilisée lors de cette analyse qui s’applique ; elle est rappelée dans l’encadré « Analyse affichée ».</p>
-        </div>
-        <div class="fld">
-          <span class="lb">2 · Quels messages analyser ? <small>(rang 1 = le plus récent)</small></span>
-          <div class="rng">
-            <label>Du rang <input type="number" id="rFrom" min="1" value="1"></label>
-            <label>au rang <input type="number" id="rTo" min="1" value="500"></label>
-            <label class="mut">soit <input type="number" id="rCount" min="1" value="500"> messages</label>
+      <div class="sf sx">
+        <section class="sx-step" aria-labelledby="sxH1">
+          <h3 class="sx-h" id="sxH1"><span class="sx-n" aria-hidden="true">1</span><span class="sx-t">Où chercher ?</span></h3>
+          <div class="sx-f sx-wide">
+            <label for="scope">Boîte ou libellé</label>
+            <select id="scope" title="Périmètre analysé : boîte de réception, tous les messages, archivés, onglets Gmail ou un de vos libellés"></select>
           </div>
-          <p class="mut" style="margin:6px 0 8px">Laissez « au rang » vide pour aller jusqu’au dernier message. Les trois champs se mettent à jour entre eux.</p>
-          <div id="chips"><span class="mut">Raccourcis : </span><button type="button" class="chip" data-n="500">500 derniers</button><button type="button" class="chip" data-n="2000">2 000 derniers</button><button type="button" class="chip" data-n="10000">10 000 derniers</button><button type="button" class="chip" data-n="0">Tous (long)</button></div>
-        </div>
-        <div class="go">
+          <div class="sx-sub">Filtres facultatifs</div>
+          <div class="sx-grid">
+            <div class="sx-f">
+              <label for="scopeAge">Ancienneté minimale</label>
+              <select id="scopeAge" title="Un seul réglage pour l’analyse ET la suppression : les mails plus récents sont exclus de la liste, ne sont pas comptés et ne peuvent pas être mis à la corbeille depuis cette section (boutons Scannés et Tous)">
+                <option value="">Aucune limite (tous les âges)</option>
+                <option value="6m">Plus de 6 mois</option>
+                <option value="1y">Plus d’un an</option>
+                <option value="2y">Plus de 2 ans</option>
+                <option value="5y">Plus de 5 ans</option>
+              </select>
+              <small>Les mails plus récents sont exclus.</small>
+            </div>
+            <div class="sx-f">
+              <label for="scopeSize">Taille minimale</label>
+              <div class="sx-unit"><input type="number" id="scopeSize" min="0" step="1" value="0" title="0 = aucun filtre. Sinon, seuls les mails de plus de cette taille sont analysés (et supprimables depuis cette section) : requête Gmail larger:NM"><span>Mo</span></div>
+              <small>0 = aucun filtre ; sinon, seuls les mails plus gros sont analysés.</small>
+            </div>
+          </div>
+          <p class="sx-note">ℹ️ Ces filtres valent pour l’analyse et pour la suppression (Scannés, Tous). Pour une analyse déjà affichée, c’est l’ancienneté utilisée lors de cette analyse qui s’applique ; elle est rappelée dans l’encadré « Analyse affichée ».</p>
+        </section>
+        <section class="sx-step" aria-labelledby="sxH2">
+          <h3 class="sx-h" id="sxH2"><span class="sx-n" aria-hidden="true">2</span><span class="sx-t">Quels messages analyser ? <small>(rang 1 = le plus récent)</small></span></h3>
+          <div class="sx-f">
+            <span class="sx-lab" id="sxQuick">Choix rapide</span>
+            <div id="chips" role="group" aria-labelledby="sxQuick"><button type="button" class="chip" data-n="500">500 derniers</button><button type="button" class="chip" data-n="2000">2 000 derniers</button><button type="button" class="chip" data-n="10000">10 000 derniers</button><button type="button" class="chip" data-n="0">Tous (long)</button></div>
+          </div>
+          <div class="sx-f" style="margin-top:12px">
+            <span class="sx-lab">… ou plage exacte</span>
+            <div class="sx-rng">
+              <label class="sx-mini">Du rang <input type="number" id="rFrom" min="1" value="1"></label>
+              <label class="sx-mini">Au rang <input type="number" id="rTo" min="1" value="500" placeholder="dernier"></label>
+              <label class="sx-mini">Nombre de messages <input type="number" id="rCount" min="1" value="500" placeholder="tous"></label>
+            </div>
+            <small>Laissez « Au rang » vide pour aller jusqu’au dernier message. Les trois champs se mettent à jour entre eux.</small>
+          </div>
+        </section>
+        <div class="go sx-go">
           <button class="btn" id="scan" type="button">Analyser</button>
           <button class="btn sec" id="stop" type="button" hidden>⏸ Arrêter</button>
           <span class="mut" id="est"></span>
@@ -478,7 +518,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.84"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.85"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -565,6 +605,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.82", "Démo : les boutons « Voir » ouvrent une fausse fenêtre Gmail (style repris de Gmail) au lieu du vrai Gmail. Liste défilante des mails de la recherche, barre de recherche fonctionnelle, navigation (réception, suivis, envoyés, corbeille, catégories, libellés), sélection (tous, aucun, lus, non lus, suivis, un par un), suppression d’un mail ou de la sélection avec « Annuler », suppression définitive depuis la corbeille, favoris, lu / non lu et lecture d’un mail. Les modifications sont conservées pendant la session de démo et effacées par « Restaurer les données de démo initiales »."],
   ["1.83", "Bouton « ↻ Actualiser toute l’analyse (rapide) » dans l’encadré bleu de l’analyse : une seule recherche par analyse (limitée à sa période) pour retirer les mails qui ne sont plus dans le périmètre ; les nombres de mails sont exacts, les non lus, favoris, onglets et tailles sont estimés au prorata (« ≈ valeurs estimées » sur la ligne). Le ↻ d’une ligne reste le recalcul exact. Après un nettoyage rapide (ou des suppressions dans la fausse fenêtre Gmail de la démo), l’analyse est signalée comme périmée par un avertissement jaune et le bouton est mis en évidence."],
   ["1.84", "Démo : le bouton « Ajouter de nouvelles données de démo » est masqué par défaut ; il n’apparaît qu’après une connexion Google réelle avec le compte propriétaire (adresse vérifiée par Google, comparée à un bloc chiffré AES-GCM / PBKDF2 : aucune adresse en clair dans le code). Une démo lancée sans compte Google n’affiche jamais ce bouton."]
+  ["1.85", "Section « Expéditeurs les plus bavards » : nouvelle présentation, sans changement de fonctionnement. Deux étapes dans des cadres numérotés ; étape 1 = boîte ou libellé, puis filtres facultatifs (ancienneté, taille) côte à côte avec leur aide sous le champ ; étape 2 = choix rapide en pastilles puis plage exacte (trois champs avec libellé au-dessus, « dernier » / « tous » affichés quand ils sont vides) ; bouton Analyser mis en avant avec la durée estimée à côté."]
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
