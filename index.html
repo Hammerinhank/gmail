@@ -73,8 +73,13 @@ select{padding:7px;border-radius:8px;border:1px solid var(--bd);background:var(-
 .row:first-child{border-top:0}
 .who{min-width:0;flex:1 1 240px}.who b{display:block;overflow:hidden;text-overflow:ellipsis}
 .cnt{font-weight:700;min-width:48px;text-align:right}
-#acctBar{position:sticky;top:0;z-index:50;margin:0 0 12px;padding:10px 14px;border-radius:8px;background:var(--acc,var(--ac));color:#fff;font-weight:600;word-break:break-all}
+#topBars{position:sticky;top:0;z-index:50;margin:0 0 12px}
+#acctBar{margin:0 0 6px;padding:10px 14px;border-radius:8px;background:var(--acc,var(--ac));color:#fff;font-weight:600;word-break:break-all}
 #acctBar[hidden]{display:none}
+#lsBar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;margin:0 0 6px;padding:8px 14px;border-radius:8px;background:var(--tint);border:2px solid var(--ac);color:var(--tx);font-size:.93rem;line-height:1.4}
+#lsBar[hidden]{display:none}
+#lsBar .btn{margin:0;padding:6px 12px;white-space:nowrap}
+#lsBar.hi{background:var(--warn);border-color:var(--l2)}
 #gtop{position:fixed;top:0;left:0;right:0;bottom:auto;width:auto;height:auto;max-height:60vh;overflow:auto;margin:0;padding:0;border:0;background:transparent;z-index:100;pointer-events:none}
 #gtop>*{pointer-events:auto}
 #gtop[hidden]{display:none}
@@ -272,7 +277,10 @@ table.dist td.r{text-align:right}
 
 <!-- ===== APPLICATION ===== -->
 <section id="app" hidden>
-  <div id="acctBar" hidden role="status"></div>
+  <div id="topBars">
+    <div id="acctBar" hidden role="status"></div>
+    <div id="lsBar" hidden role="status"><span id="lsTxt"></span><button class="btn dg" id="lsFree" type="button" title="Efface les analyses, journaux, courbes et tailles mémorisés dans ce navigateur (les réglages — ID client, GitHub, garde-fous, compte à traiter — sont conservés)">🧹 Libérer le stockage</button></div>
+  </div>
   <button class="btn sec" id="ownDemo" type="button" hidden>🧪 Ouvrir la démo (mode propriétaire)</button>
   <div id="demoBar" class="card" hidden style="border-color:#7b1fa2">
     <b>🧪 Mode démonstration</b> <span class="mut">Les suppressions n’affectent que cette fausse boîte.</span><br>
@@ -518,7 +526,7 @@ table.dist td.r{text-align:right}
 </dialog>
 
 <script>
-const VERSION = "1.85"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
+const VERSION = "1.86"; // ⚠️ À INCRÉMENTER à chaque modification du fichier (+ ajouter une entrée à CHANGELOG ci-dessous)
 const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en dernier
   ["1.0", "Création : guide de configuration en 5 étapes (ID client Google, stockage local), nettoyages rapides et liste d’expéditeurs."],
   ["1.1", "Affichage des erreurs Gmail au lieu des « ? » sans explication."],
@@ -595,7 +603,7 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.72", "Reproduction de l’historique : correction de l’erreur « Parent SHA does not exist or is not a commit object ». GitHub ne rend pas toujours visible tout de suite un objet qu’il vient de créer ; le bouton réessaie maintenant (jusqu’à 8 fois, avec des attentes croissantes) quand un blob, un tree ou un commit parent n’est pas encore trouvé."],
   ["1.73", "Reproduction de l’historique : plus de branche à part. Les commits (un par version de index.html, même message, même auteur, même date) sont ajoutés à la suite de la branche principale du dépôt du journal, qui garde tous ses autres fichiers (arbre de chaque commit construit sur le précédent). Un contrôle empêche les doublons si l’historique a déjà été reproduit ; la branche principale n’est mise à jour qu’à la fin, en avance rapide."],
   ["1.74", "Reproduction de l’historique : réessai automatique (jusqu’à 6 fois, attentes croissantes) quand GitHub répond par une erreur serveur 5xx (« erreur 500 », 502, 503…) ou que la connexion échoue momentanément, au lieu d’abandonner dès la première erreur."],
-  ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."]
+  ["1.75", "Plusieurs comptes Gmail sans mélange : toutes les données sont désormais rangées par compte. Dans le navigateur, chaque clé (analyses, journal, répartition, tailles, envoi GitHub en attente) porte l’adresse du compte connecté, lue juste après la connexion ; sur GitHub, chaque compte a son propre dossier, nommé d’après son adresse, dans le dépôt du journal (ex. adresse@gmail.com/menage-gmail-log.json). Au premier changement de version, les données et le journal GitHub existants (à la racine) sont rattachés au compte de votre choix après confirmation. Changer de compte vide l’affichage, les caches et recharge les données du nouveau compte ; l’envoi GitHub en attente de l’ancien compte est fait avant le changement. Réglages communs à tous les comptes : ID client, dépôt et jeton GitHub, garde-fous."],
   ["1.76", "Garde-fou multi-comptes : sélecteur de compte Google forcé à chaque connexion, champ « Compte à traiter » (connexion refusée si Google connecte une autre adresse), bandeau permanent coloré avec l’adresse connectée, adresse rappelée dans la confirmation de mise à la corbeille. Suppression du bouton provisoire « Reproduire l’historique » et de son code, devenus inutiles."],
   ["1.77", "Suppression du code de reprise des données d’avant la v1.75 (anciennes clés du navigateur et ancien journal GitHub à la racine du dépôt), devenu inutile."],
   ["1.78", "Liste des expéditeurs : nouveau bouton ↻ (entre Info et Scannés) qui relit uniquement les mails de cet expéditeur déjà enregistrés dans les analyses : retire ceux qui ne sont plus dans le périmètre (corbeille, suppression, archivage), relit non lus, favoris, onglets, taille et dates des autres, puis met à jour la ligne, la taille globale et le nombre de messages comptés de l’analyse. Si tous ses mails ont disparu, la ligne reste affichée à 0 jusqu’au prochain affichage de l’analyse."],
@@ -604,8 +612,9 @@ const CHANGELOG = [ // ⚠️ une entrée par version, la plus récente en derni
   ["1.81", "Démo : la requête pour l’IA est désormais prête à l’emploi. Le profil souhaité (facultatif) et le nombre d’expéditeurs se saisissent dans la fenêtre « Ajouter de nouvelles données de démo » et sont insérés automatiquement dans la requête copiée ; sans rien saisir, l’IA génère un jeu varié d’environ 30 expéditeurs. La requête interdit à l’IA de poser des questions ou d’ajouter du texte autour du JSON."],
   ["1.82", "Démo : les boutons « Voir » ouvrent une fausse fenêtre Gmail (style repris de Gmail) au lieu du vrai Gmail. Liste défilante des mails de la recherche, barre de recherche fonctionnelle, navigation (réception, suivis, envoyés, corbeille, catégories, libellés), sélection (tous, aucun, lus, non lus, suivis, un par un), suppression d’un mail ou de la sélection avec « Annuler », suppression définitive depuis la corbeille, favoris, lu / non lu et lecture d’un mail. Les modifications sont conservées pendant la session de démo et effacées par « Restaurer les données de démo initiales »."],
   ["1.83", "Bouton « ↻ Actualiser toute l’analyse (rapide) » dans l’encadré bleu de l’analyse : une seule recherche par analyse (limitée à sa période) pour retirer les mails qui ne sont plus dans le périmètre ; les nombres de mails sont exacts, les non lus, favoris, onglets et tailles sont estimés au prorata (« ≈ valeurs estimées » sur la ligne). Le ↻ d’une ligne reste le recalcul exact. Après un nettoyage rapide (ou des suppressions dans la fausse fenêtre Gmail de la démo), l’analyse est signalée comme périmée par un avertissement jaune et le bouton est mis en évidence."],
-  ["1.84", "Démo : le bouton « Ajouter de nouvelles données de démo » est masqué par défaut ; il n’apparaît qu’après une connexion Google réelle avec le compte propriétaire (adresse vérifiée par Google, comparée à un bloc chiffré AES-GCM / PBKDF2 : aucune adresse en clair dans le code). Une démo lancée sans compte Google n’affiche jamais ce bouton."]
-  ["1.85", "Section « Expéditeurs les plus bavards » : nouvelle présentation, sans changement de fonctionnement. Deux étapes dans des cadres numérotés ; étape 1 = boîte ou libellé, puis filtres facultatifs (ancienneté, taille) côte à côte avec leur aide sous le champ ; étape 2 = choix rapide en pastilles puis plage exacte (trois champs avec libellé au-dessus, « dernier » / « tous » affichés quand ils sont vides) ; bouton Analyser mis en avant avec la durée estimée à côté."]
+  ["1.84", "Démo : le bouton « Ajouter de nouvelles données de démo » est masqué par défaut ; il n’apparaît qu’après une connexion Google réelle avec le compte propriétaire (adresse vérifiée par Google, comparée à un bloc chiffré AES-GCM / PBKDF2 : aucune adresse en clair dans le code). Une démo lancée sans compte Google n’affiche jamais ce bouton."],
+  ["1.85", "Section « Expéditeurs les plus bavards » : nouvelle présentation, sans changement de fonctionnement. Deux étapes dans des cadres numérotés ; étape 1 = boîte ou libellé, puis filtres facultatifs (ancienneté, taille) côte à côte avec leur aide sous le champ ; étape 2 = choix rapide en pastilles puis plage exacte (trois champs avec libellé au-dessus, « dernier » / « tous » affichés quand ils sont vides) ; bouton Analyser mis en avant avec la durée estimée à côté."],
+  ["1.86", "Bandeau « stockage local » réservé au propriétaire (même mécanisme chiffré que le bouton de démo : aucune adresse en clair) : affiché en haut de l’écran, sous la barre du compte, il indique la taille du localStorage utilisée par l’application (entrées « gmailMenage.* »), son pourcentage du quota habituel et la part libérable, mise à jour toutes les 5 s. Bouton « Libérer le stockage » : après confirmation, envoie d’abord le journal en attente vers GitHub, puis efface analyses, journaux, courbes, tailles et données de démo de tous les comptes ; l’ID client, le dépôt et le jeton GitHub, les garde-fous et le compte à traiter sont conservés. Correction : deux virgules manquantes dans l’historique des versions (1.75 et 1.84) qui faisaient échouer l’affichage de la liste."]
 ];
 const LS = "gmailMenage.clientId";
 const $ = s => document.querySelector(s);
@@ -678,14 +687,14 @@ async function ownerCheck(email) {
 let demoOwner = false;
 async function ownerRefresh() { // appelé au démarrage de la démo : clé mémorisée seulement après une connexion Google vérifiée
   let k = ""; try { k = sessionStorage.getItem(OWNK) || ""; } catch (e) {}
-  demoOwner = k ? await ownerCheck(k) : false; $("#demoAdd").hidden = !demoOwner;
+  demoOwner = k ? await ownerCheck(k) : false; $("#demoAdd").hidden = !demoOwner; lsBarShow(demoOwner);
 }
 $("#ownDemo").onclick = () => { location.search = "?demo"; };
 const EXPK = "gmailMenage.expected";
 const colorOf = e => { let h = 0; for (const c of e) h = (h * 31 + c.charCodeAt(0)) % 360; return "hsl(" + h + ",60%,36%)"; };
 function setAcctBar(email) {
   const b = $("#acctBar"); if (!b) return;
-  if (!email) { b.hidden = true; b.textContent = ""; document.title = "Ménage Gmail v" + VERSION; return; }
+  if (!email) { lsBarShow(false); b.hidden = true; b.textContent = ""; document.title = "Ménage Gmail v" + VERSION; return; }
   b.style.setProperty("--acc", colorOf(email)); b.textContent = "Compte connecté : " + email; b.hidden = false; document.title = email + " — Ménage Gmail v" + VERSION;
 }
 try { $("#expAcct").value = localStorage.getItem(EXPK) || ""; } catch (e) {}
@@ -712,7 +721,7 @@ $("#go").onclick = async () => {
           clearTimeout(ghTimer); ghTimer = null;
           try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) await ghSync(true); } catch (e) {}
         }
-        ownerCheck(email).then(ok => { try { if (ok) sessionStorage.setItem(OWNK, email); else sessionStorage.removeItem(OWNK); } catch (e) {} $("#ownDemo").hidden = !ok; });
+        ownerCheck(email).then(ok => { try { if (ok) sessionStorage.setItem(OWNK, email); else sessionStorage.removeItem(OWNK); } catch (e) {} $("#ownDemo").hidden = !ok; lsBarShow(ok); });
         acct = email; setAcctBar(email); loadAccountData();
         $("#connect").hidden = true; $("#tools").hidden = false; buildPresets(); loadStats(); restoreScan(); loadScopeLabels(); ghInit(); ghSync(false).then(() => { try { if (localStorage.getItem(AK("ghDirty")) && ghCfg()) ghSync(true); } catch (e) {} });
       },
@@ -2381,6 +2390,53 @@ $("#gmDlg").addEventListener("click", e => { // éléments décoratifs ; fermetu
   if (e.target.closest(".gm-fake")) gmToast("🧪 Démo : cette fonction de Gmail n’est pas simulée.", false);
 });
 
+
+// ===== Bandeau « stockage local » (propriétaire seulement : mêmes vérification chiffrée que « Ajouter de nouvelles données de démo ») =====
+const LS_PFX = "gmailMenage.", LS_KEEP = new Set([LS, GH, GUARD_KEY, EXPK, DEMO_PFX + "gh"]); // réglages conservés quand on libère le stockage
+const LS_QUOTA = 10 * 1048576; // quota habituel d’un site : ≈ 5 millions de caractères = ≈ 10 Mo en UTF-16
+let lsOwner = false, lsTimer = null;
+function lsStats() { // taille (octets, UTF-16 : 2 octets par caractère) des seules entrées de l’application
+  let tot = 0, free = 0, n = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i); if (!k || !k.startsWith(LS_PFX)) continue;
+      const z = (k.length + (localStorage.getItem(k) || "").length) * 2; tot += z; n++; if (!LS_KEEP.has(k)) free += z;
+    }
+  } catch (e) { return null; }
+  return { tot, free, n };
+}
+function lsBarUpdate() {
+  const b = $("#lsBar"); if (!b || b.hidden) return; const s = lsStats();
+  if (!s) { $("#lsTxt").textContent = "💾 Stockage local indisponible dans ce navigateur."; $("#lsFree").disabled = true; return; }
+  const pct = Math.round(100 * s.tot / LS_QUOTA);
+  $("#lsTxt").innerHTML = "💾 <b>Stockage local utilisé par l’application : " + fmtSize(s.tot) + "</b> (≈ " + pct + " % du quota habituel d’environ 10 Mo) · " + fmt(s.n) + " entrée(s) · libérable : " + fmtSize(s.free);
+  b.classList.toggle("hi", pct >= 70); $("#lsFree").disabled = !s.free;
+}
+function lsBarShow(on) {
+  lsOwner = !!on; const b = $("#lsBar"); if (!b) return; b.hidden = !lsOwner;
+  clearInterval(lsTimer); lsTimer = null;
+  if (lsOwner) { lsBarUpdate(); lsTimer = setInterval(lsBarUpdate, 5000); }
+}
+$("#lsFree").onclick = async () => {
+  if (!lsOwner) return;
+  if (running) return msg("Une analyse ou un calcul est en cours : attendez sa fin avant de libérer le stockage.", 1);
+  const s0 = lsStats(); if (!s0 || !s0.free) return msg("Rien à libérer : il ne reste que les réglages.");
+  if (!confirm("Libérer " + fmtSize(s0.free) + " de stockage local ?\n\nSeront EFFACÉS (tous comptes confondus) : analyses enregistrées, journal et courbes, répartition, tailles des nettoyages rapides, données de démo.\nSeront CONSERVÉS : ID client Google, dépôt et jeton GitHub, garde-fous, compte à traiter.\n\n" + (!DEMO_ON && ghCfg() ? "Le journal en attente sera d’abord envoyé vers GitHub.\n\n" : "Si le journal GitHub n’est pas configuré, l’historique des courbes sera perdu.\n\n") + "Aucun mail Gmail n’est touché.")) return;
+  const btn = $("#lsFree"); btn.disabled = true;
+  try {
+    if (!DEMO_ON && acct && ghCfg()) { msg("Envoi du journal vers GitHub avant nettoyage…"); clearTimeout(ghTimer); ghTimer = null; await ghSync(true, true); }
+    const keys = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(LS_PFX)) keys.push(k); }
+    const dirty = keys.filter(k => k.startsWith(LS_PFX + "ghDirty|")).length;
+    if (dirty && !confirm("L’envoi vers GitHub n’a pas abouti (ou n’est pas possible) : " + dirty + " journal(aux) non synchronisé(s) seront définitivement perdus.\n\nLibérer quand même le stockage ?")) { msg("Libération annulée."); return; }
+    keys.filter(k => !LS_KEEP.has(k)).forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+    clearTimeout(ghTimer); ghTimer = null; cumulView = false;
+    if (DEMO_ON) { clearTimeout(demoSaveT); demoSaveT = null; demoMods = {}; demoBuild(demoInit); } // boîte de démo remise à son état d’origine
+    loadAccountData(); renderScans(); buildPresets(); loadStats(); loadScopeLabels(); ghInit();
+    const s1 = lsStats(); lsBarUpdate();
+    msg("✅ Stockage local libéré : " + fmtSize(s0.tot) + " → " + fmtSize(s1 ? s1.tot : 0) + ". Les analyses sont à refaire ; vos réglages sont conservés.");
+  } catch (e) { msg("Libération impossible : " + e.message, 1); }
+  finally { lsBarUpdate(); }
+};
 
 render();
 if (/[?&]demo(?:[=&]|$)/.test(location.search) || location.hash === "#demo") demoStart(); // adresse ...?demo : démarrage direct en démo
